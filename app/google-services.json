@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "107904578129",
+    "firebase_url": "https://zona-buket-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "zona-buket",
+    "storage_bucket": "zona-buket.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:107904578129:android:b0e420bc7e9445b4a67e70",
+        "android_client_info": {
+          "package_name": "com.ppl3.appzonabuket"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzaZ_R5RRYHKm0jgKJ3hg9wBkojyGqddE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
