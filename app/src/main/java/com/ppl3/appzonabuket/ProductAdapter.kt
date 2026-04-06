@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
 class ProductAdapter(private val productList: List<Product>) :
@@ -36,7 +37,15 @@ class ProductAdapter(private val productList: List<Product>) :
 
         // tombol tambah ke keranjang
         holder.btnAdd.setOnClickListener {
+
             CartManager.addToCart(product)
+
+            Toast.makeText(
+                holder.itemView.context,
+                "Produk ditambahkan ke keranjang",
+                Toast.LENGTH_SHORT
+            ).show()
+
         }
     }
 

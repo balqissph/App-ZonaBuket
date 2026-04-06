@@ -1,16 +1,20 @@
 package com.ppl3.appzonabuket
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 class KeranjangActivity : AppCompatActivity() {
 
     lateinit var recyclerCart: RecyclerView
+    lateinit var adapter: CartAdapter
+
+    lateinit var tabRekomendasi: TextView
+    lateinit var tabKatalog: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,16 +23,36 @@ class KeranjangActivity : AppCompatActivity() {
 
         recyclerCart = findViewById(R.id.recyclerCart)
 
-        // layout list vertikal
-        recyclerCart.layoutManager = LinearLayoutManager(this)
+        tabRekomendasi = findViewById(R.id.tabRekomendasi)
+        tabKatalog = findViewById(R.id.tabKatalog)
 
-        // adapter keranjang
-        recyclerCart.adapter = CartAdapter(CartManager.cartItems)
+        recyclerCart.layoutManager =
+            LinearLayoutManager(this)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainKeranjang)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        adapter = CartAdapter(CartManager.cartItems)
+
+        recyclerCart.adapter = adapter
+
+        // Klik TAB REKOMENDASI → MainActivity
+        tabRekomendasi.setOnClickListener {
+
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+
         }
+
+        // Klik TAB KATALOG → KatalogActivity
+        tabKatalog.setOnClickListener {
+
+            val intent = Intent(this, KatalogActivity::class.java)
+            startActivity(intent)
+
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        adapter.notifyDataSetChanged()
     }
 }
