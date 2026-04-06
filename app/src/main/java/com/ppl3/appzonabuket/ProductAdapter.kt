@@ -14,6 +14,7 @@ class ProductAdapter(private val productList: List<Product>) :
         val imgProduct: ImageView = view.findViewById(R.id.imgProduct)
         val txtName: TextView = view.findViewById(R.id.tvProductName)
         val txtPrice: TextView = view.findViewById(R.id.tvPrice)
+        val btnAdd: ImageView = view.findViewById(R.id.btnAdd)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
@@ -30,7 +31,13 @@ class ProductAdapter(private val productList: List<Product>) :
         val product = productList[position]
 
         holder.txtName.text = product.name
-        holder.txtPrice.text = product.price
+        holder.txtPrice.text = "Rp ${product.price}"
         holder.imgProduct.setImageResource(product.image)
+
+        // tombol tambah ke keranjang
+        holder.btnAdd.setOnClickListener {
+            CartManager.addToCart(product)
+        }
     }
+
 }

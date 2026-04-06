@@ -2,6 +2,7 @@ package com.ppl3.appzonabuket
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -25,14 +26,14 @@ class KatalogActivity : AppCompatActivity() {
 
         // DATA PRODUK KATALOG
         val productList = listOf(
-            Product("Buket Mawar", "150000", R.drawable.buket1),
-            Product("Buket Wisuda", "200000", R.drawable.buket2),
-            Product("Buket Ulang Tahun", "180000", R.drawable.buket3),
-            Product("Buket Anniversary", "220000", R.drawable.buket4),
-            Product("Buket Baby", "170000", R.drawable.buket5),
-            Product("Buket Graduation", "210000", R.drawable.buket6),
-            Product("Buket Pink", "190000", R.drawable.buket7),
-            Product("Buket Lily", "230000", R.drawable.buket8)
+            Product("Buket Mawar", 150000, R.drawable.buket1),
+            Product("Buket Wisuda", 200000, R.drawable.buket2),
+            Product("Buket Ulang Tahun", 180000, R.drawable.buket3),
+            Product("Buket Anniversary", 220000, R.drawable.buket4),
+            Product("Buket Baby", 170000, R.drawable.buket5),
+            Product("Buket Graduation", 210000, R.drawable.buket6),
+            Product("Buket Pink", 190000, R.drawable.buket7),
+            Product("Buket Lily", 230000, R.drawable.buket8)
         )
 
         val adapter = ProductAdapter(productList)
@@ -43,6 +44,11 @@ class KatalogActivity : AppCompatActivity() {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             finish()
+        }
+
+        val btnCart = findViewById<ImageView>(R.id.btnCart)
+        btnCart.setOnClickListener {
+            startActivity(Intent(this, KeranjangActivity::class.java))
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainKatalog)) { v, insets ->

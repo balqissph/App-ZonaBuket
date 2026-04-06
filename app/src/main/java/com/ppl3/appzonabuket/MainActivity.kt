@@ -2,6 +2,7 @@ package com.ppl3.appzonabuket
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -29,11 +30,11 @@ class MainActivity : AppCompatActivity() {
 
         // DATA PRODUK
         val productList = listOf(
-            Product("Buket Uang 100k", "150000", R.drawable.buket1),
-            Product("Buket Uang 50k", "200000", R.drawable.buket2),
-            Product("Buket Bunga Biru Hitam", "180000", R.drawable.buket3),
-            Product("Buket Biru Wisuda", "220000", R.drawable.buket4),
-            Product("Buket Silver", "250000", R.drawable.buket5)
+            Product("Buket Uang 100k", 150000, R.drawable.buket1),
+            Product("Buket Uang 50k", 200000, R.drawable.buket2),
+            Product("Buket Bunga Biru Hitam", 180000, R.drawable.buket3),
+            Product("Buket Biru Wisuda", 220000, R.drawable.buket4),
+            Product("Buket Silver", 250000, R.drawable.buket5)
         )
 
         val adapter = ProductAdapter(productList)
@@ -43,6 +44,11 @@ class MainActivity : AppCompatActivity() {
         tabKatalog.setOnClickListener {
             val intent = Intent(this, KatalogActivity::class.java)
             startActivity(intent)
+        }
+
+        val btnCart = findViewById<ImageView>(R.id.btnCart)
+        btnCart.setOnClickListener {
+            startActivity(Intent(this, KeranjangActivity::class.java))
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->

@@ -21,9 +21,9 @@
             android:id="@+id/imgCartProduct"
             android:layout_width="110dp"
             android:layout_height="110dp"
+            android:layout_marginEnd="16dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/buket1"
-            android:layout_marginEnd="16dp"/>
+            android:src="@drawable/buket1" />
 
         <!-- INFO PRODUK -->
         <LinearLayout
@@ -39,8 +39,7 @@
                 android:text="Buket Bunga Biru dan Hitam"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="#2F2F2F"
-                android:layout_marginBottom="6dp"/>
+                android:textColor="#2F2F2F"/>
 
             <TextView
                 android:id="@+id/tvCartPrice"
@@ -48,42 +47,48 @@
                 android:layout_height="wrap_content"
                 android:text="Rp. 150.000"
                 android:textSize="18sp"
-                android:textColor="#333333"/>
+                android:textColor="#333333"
+                android:layout_marginTop="4dp"/>
 
-            <!-- QUANTITY -->
+            <!-- QTY SELECTOR -->
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
+                android:layout_width="120dp"
+                android:layout_height="40dp"
                 android:orientation="horizontal"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_quantity"
-                android:gravity="center_vertical">
+                android:layout_marginTop="8dp"
+                android:gravity="center">
 
+                <!-- MINUS -->
                 <ImageButton
                     android:id="@+id/btnMinus"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_qty_left"
                     android:src="@drawable/minus"
-                    android:background="@drawable/bg_qty_button"
-                    android:tint="#FFFFFF"
-                    android:scaleType="center"/>>
+                    android:scaleType="center"
+                    android:padding="8dp"/>
 
+                <!-- JUMLAH -->
                 <TextView
-                    android:id="@+id/tvQuantity"
+                    android:id="@+id/tvQty"
                     android:layout_width="40dp"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="1"
+                    android:text="2"
                     android:textSize="16sp"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold"
+                    android:textColor="#2C2C2C"
+                    android:background="@drawable/bg_qty_center"/>
 
+                <!-- PLUS -->
                 <ImageButton
                     android:id="@+id/btnPlus"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_qty_right"
                     android:src="@drawable/plus"
-                    android:scaleType="centerInside"
-                    android:backgroundTint="#2C2C2C"/>
+                    android:scaleType="center"
+                    android:padding="8dp"/>
 
             </LinearLayout>
 
