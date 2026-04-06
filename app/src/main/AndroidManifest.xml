@@ -12,6 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppZonaBuket">
         <activity
+            android:name=".KeranjangActivity"
+            android:exported="false" />
+        <activity
+            android:name=".KatalogActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

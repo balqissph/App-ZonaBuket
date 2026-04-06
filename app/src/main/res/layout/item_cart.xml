@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="140dp"
+    android:layout_marginBottom="16dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <!-- GAMBAR PRODUK -->
+        <ImageView
+            android:id="@+id/imgCartProduct"
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/buket1"
+            android:layout_marginEnd="16dp"/>
+
+        <!-- INFO PRODUK -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvCartName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Buket Bunga Biru dan Hitam"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#2F2F2F"
+                android:layout_marginBottom="6dp"/>
+
+            <TextView
+                android:id="@+id/tvCartPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rp. 150.000"
+                android:textSize="18sp"
+                android:textColor="#333333"/>
+
+            <!-- QUANTITY -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_quantity"
+                android:gravity="center_vertical">
+
+                <ImageButton
+                    android:id="@+id/btnMinus"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:src="@drawable/minus"
+                    android:background="@drawable/bg_qty_button"
+                    android:tint="#FFFFFF"
+                    android:scaleType="center"/>>
+
+                <TextView
+                    android:id="@+id/tvQuantity"
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textSize="16sp"
+                    android:textStyle="bold"/>
+
+                <ImageButton
+                    android:id="@+id/btnPlus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/plus"
+                    android:scaleType="centerInside"
+                    android:backgroundTint="#2C2C2C"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainKeranjang"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_zona"
+    tools:context=".KeranjangActivity">
+
+    <!-- HEADER -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="0dp"
+        android:layout_height="94dp"
+        android:background="#F7F7F7"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- MENU -->
+        <ImageView
+            android:id="@+id/btnMenu"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="20dp"
+            android:src="@drawable/ic_list"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- LOGO -->
+        <ImageView
+            android:id="@+id/imgLogo"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:adjustViewBounds="true"
+            android:src="@drawable/logo"
+            android:contentDescription="Logo Zona Buket"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btnMenu"
+            app:layout_constraintEnd_toStartOf="@id/btnCart" />
+
+        <!-- CART -->
+        <ImageView
+            android:id="@+id/btnCart"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="20dp"
+            android:src="@drawable/ic_cart"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- TAB REKOMENDASI & KATALOG -->
+    <LinearLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="396dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_tab"
+        android:orientation="horizontal"
+        android:padding="6dp"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/tabRekomendasi"
+            android:layout_width="208dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="REKOMENDASI"
+            android:textColor="#2F2F2F"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tabKatalog"
+            android:layout_width="172dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="KATALOG"
+            android:textColor="#2F2F2F"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+    <!-- CONTENT -->
+    <LinearLayout
+        android:id="@+id/contentLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        app:layout_constraintTop_toBottomOf="@id/tabLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- LIST PRODUK -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:orientation="vertical"
+            android:layout_marginEnd="20dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerKatalog"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:padding="20dp"
+                android:clipToPadding="false"
+                app:layout_constraintTop_toBottomOf="@id/tabLayout"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:listitem="@layout/item_product"/>
+
+        </LinearLayout>
+
+        <!-- PANEL PEMBAYARAN -->
+        <LinearLayout
+            android:layout_width="350dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:padding="20dp"
+            android:elevation="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Metode Pembayaran"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- GRID PEMBAYARAN -->
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:rowCount="2"
+                android:layout_marginBottom="20dp">
+
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/bca"
+                    android:layout_margin="10dp"
+                    android:background="#F4F4F4"/>
+
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/mandiri"
+                    android:layout_margin="10dp"
+                    android:background="#F4F4F4"/>
+
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/qris"
+                    android:layout_margin="10dp"
+                    android:background="#F4F4F4"/>
+
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/cash"
+                    android:layout_margin="10dp"
+                    android:background="#F4F4F4"/>
+
+            </GridLayout>
+
+            <TextView
+                android:id="@+id/tvTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total : Rp. 400.000"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="20dp"/>
+
+            <Button
+                android:id="@+id/btnCheckout"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Checkout"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#3BE000"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
