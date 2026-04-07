@@ -26,14 +26,14 @@ class KatalogActivity : AppCompatActivity() {
 
         // DATA PRODUK KATALOG
         val productList = listOf(
-            Product("Buket Mawar", 150000, R.drawable.buket1),
-            Product("Buket Wisuda", 200000, R.drawable.buket2),
-            Product("Buket Ulang Tahun", 180000, R.drawable.buket3),
-            Product("Buket Anniversary", 220000, R.drawable.buket4),
-            Product("Buket Baby", 170000, R.drawable.buket5),
-            Product("Buket Graduation", 210000, R.drawable.buket6),
-            Product("Buket Pink", 190000, R.drawable.buket7),
-            Product("Buket Lily", 230000, R.drawable.buket8)
+            Product("Buket Mawar", 150000, R.drawable.buket1, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
+            Product("Buket Wisuda", 200000, R.drawable.buket2, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
+            Product("Buket Ulang Tahun", 180000, R.drawable.buket3, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
+            Product("Buket Anniversary", 220000, R.drawable.buket4, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
+            Product("Buket Baby", 170000, R.drawable.buket5, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
+            Product("Buket Graduation", 210000, R.drawable.buket6, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
+            Product("Buket Pink", 190000, R.drawable.buket7, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
+            Product("Buket Lily", 230000, R.drawable.buket8,"Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih.")
         )
 
         val adapter = ProductAdapter(productList)

@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 
 class CartAdapter(private val items: List<Product>) :
     RecyclerView.Adapter<CartAdapter.ViewHolder>() {
@@ -27,7 +28,10 @@ class CartAdapter(private val items: List<Product>) :
 
         val product = items[position]
 
-        holder.img.setImageResource(product.image)
+        Glide.with(holder.itemView.context)
+            .load(product.image)
+            .placeholder(android.R.color.darker_gray) // warna abu-abu pas loading
+            .into(holder.img)
         holder.name.text = product.name
         holder.price.text = "Rp. ${product.price}"
         holder.qty.text = product.qty.toString()
