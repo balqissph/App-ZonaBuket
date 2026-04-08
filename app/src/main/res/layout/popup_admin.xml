@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="24dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="32dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nama"
+            android:textColor="#555555"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etNamaAdminDialog"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/bg_tab"
+            android:hint="masukan nama admin"
+            android:paddingHorizontal="16dp"
+            android:textColor="#333333"
+            android:textSize="16sp"
+            android:layout_marginBottom="24dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Password"
+            android:textColor="#555555"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etPasswordAdminDialog"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/bg_tab"
+            android:hint="masukan password admin"
+            android:inputType="textPassword"
+            android:paddingHorizontal="16dp"
+            android:textColor="#333333"
+            android:textSize="16sp"
+            android:layout_marginBottom="32dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSimpanAdminDialog"
+            android:layout_width="160dp"
+            android:layout_height="55dp"
+            android:layout_gravity="center_horizontal"
+            android:backgroundTint="#65F574"
+            android:text="Simpan"
+            android:textAllCaps="false"
+            android:textColor="#111111"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius="28dp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
