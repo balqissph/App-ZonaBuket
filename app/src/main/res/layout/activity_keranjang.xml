@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mainKeranjang"
@@ -8,7 +9,6 @@
     android:background="@drawable/bg_zona"
     tools:context=".KeranjangActivity">
 
-    <!-- HEADER -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/headerLayout"
         android:layout_width="0dp"
@@ -20,7 +20,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- MENU -->
         <ImageView
             android:id="@+id/btnMenu"
             android:layout_width="28dp"
@@ -31,7 +30,6 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <!-- LOGO -->
         <ImageView
             android:id="@+id/imgLogo"
             android:layout_width="wrap_content"
@@ -44,7 +42,6 @@
             app:layout_constraintStart_toEndOf="@id/btnMenu"
             app:layout_constraintEnd_toStartOf="@id/btnCart" />
 
-        <!-- CART -->
         <ImageView
             android:id="@+id/btnCart"
             android:layout_width="28dp"
@@ -57,7 +54,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- TAB REKOMENDASI & KATALOG -->
     <LinearLayout
         android:id="@+id/tabLayout"
         android:layout_width="396dp"
@@ -92,7 +88,6 @@
 
     </LinearLayout>
 
-    <!-- CONTENT -->
     <LinearLayout
         android:id="@+id/contentLayout"
         android:layout_width="0dp"
@@ -104,7 +99,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- LIST PRODUK -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -122,7 +116,6 @@
 
         </LinearLayout>
 
-        <!-- PANEL PEMBAYARAN -->
         <LinearLayout
             android:layout_width="350dp"
             android:layout_height="450dp"
@@ -148,11 +141,14 @@
                 android:useDefaultMargins="true"
                 android:layout_marginBottom="20dp">
 
-                <!-- BCA -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnBca"
                     android:layout_width="130dp"
                     android:layout_height="90dp"
                     android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardBackgroundColor="#F4F4F4"
                     app:cardElevation="0dp">
@@ -163,14 +159,16 @@
                         android:src="@drawable/bca"
                         android:padding="14dp"
                         android:scaleType="fitCenter"/>
-
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- MANDIRI -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnMandiri"
                     android:layout_width="130dp"
                     android:layout_height="90dp"
                     android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardBackgroundColor="#F4F4F4"
                     app:cardElevation="0dp">
@@ -181,14 +179,16 @@
                         android:src="@drawable/mandiri"
                         android:padding="14dp"
                         android:scaleType="fitCenter"/>
-
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- QRIS -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnQris"
                     android:layout_width="130dp"
                     android:layout_height="90dp"
                     android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardBackgroundColor="#F4F4F4"
                     app:cardElevation="0dp">
@@ -199,14 +199,16 @@
                         android:src="@drawable/qris"
                         android:padding="14dp"
                         android:scaleType="fitCenter"/>
-
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- CASH -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btnTunai"
                     android:layout_width="130dp"
                     android:layout_height="90dp"
                     android:layout_margin="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardBackgroundColor="#F4F4F4"
                     app:cardElevation="0dp">
@@ -217,7 +219,6 @@
                         android:src="@drawable/cash"
                         android:padding="14dp"
                         android:scaleType="fitCenter"/>
-
                 </com.google.android.material.card.MaterialCardView>
 
             </GridLayout>
@@ -238,7 +239,7 @@
                 android:layout_height="48dp"
                 android:text="Checkout"
                 android:textColor="#FFFFFF"
-                android:backgroundTint="#3BE000"/>
+                app:backgroundTint="#3BE000"/>
 
         </LinearLayout>
 
