@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="400dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="30dp"
+    android:background="@drawable/bg_popup_pin"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Masukan PIN Anda"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#2C2C2C"
+        android:layout_marginBottom="20dp"/>
+
+    <TextView
+        android:id="@+id/tvPinIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="30sp"
+        android:letterSpacing="0.5"
+        android:textColor="#2C2C2C"
+        android:layout_marginBottom="25dp"/>
+
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:columnCount="3">
+
+        <TextView
+            android:id="@+id/btn1"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="1"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pin"/>
+
+        <TextView
+            android:id="@+id/btn2"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="2"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pin"/>
+
+        <TextView
+            android:id="@+id/btn3"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="3"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pin"/>
+
+        <TextView
+            android:id="@+id/btn4"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="4"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pin"/>
+
+        <TextView
+            android:id="@+id/btn5"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="5"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pin"/>
+
+        <TextView
+            android:id="@+id/btn6"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="6"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pin"/>
+
+        <TextView
+            android:id="@+id/btn7"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="7"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pin"/>
+
+        <TextView
+            android:id="@+id/btn8"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="8"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pin"/>
+
+        <TextView
+            android:id="@+id/btn9"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="9"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pin"/>
+
+        <Space
+            android:layout_width="80dp"
+            android:layout_height="80dp"/>
+
+        <TextView
+            android:id="@+id/btn0"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:text="0"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_pin"/>
+
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/delete_pin"
+            android:scaleType="center"/>
+
+    </GridLayout>
+
+</LinearLayout>

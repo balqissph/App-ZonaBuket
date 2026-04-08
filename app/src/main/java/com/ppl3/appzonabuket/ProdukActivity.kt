@@ -3,41 +3,42 @@ package com.ppl3.appzonabuket
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 
-class MainActivity : AppCompatActivity() {
+class ProdukActivity : AppCompatActivity() {
 
-    lateinit var recyclerProduk: RecyclerView
-    lateinit var tabKatalog: TextView
     lateinit var drawerLayout: DrawerLayout
+    lateinit var recyclerManajemenProduk: RecyclerView
+    lateinit var adapter: ManajemenProdukAdapter
+    var selectedImageRes = R.drawable.tambah_gambar
+    val productList = mutableListOf<Product>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_produk)
 
-        // INISIALISASI VIEW
-        recyclerProduk = findViewById(R.id.recyclerProduk)
-        tabKatalog = findViewById(R.id.tabKatalog)
+        recyclerManajemenProduk = findViewById(R.id.recyclerManajemenProduk)
+        val btnTambah = findViewById<MaterialButton>(R.id.btnTambahProduk)
+
         drawerLayout = findViewById(R.id.drawerLayout)
-
         val btnMenu = findViewById<ImageView>(R.id.btnMenu)
-        val btnCart = findViewById<ImageView>(R.id.btnCart)
 
         val menuProfile = findViewById<LinearLayout>(R.id.menuProfile)
         val menuLaporan = findViewById<LinearLayout>(R.id.menuLaporan)
@@ -64,65 +65,43 @@ class MainActivity : AppCompatActivity() {
             showPinPopup(ProdukActivity::class.java)
         }
 
-        // LOGOUT POPUP
+        // LOGOUT
         btnLogout.setOnClickListener {
 
-            val builder = AlertDialog.Builder(this)
+            AlertDialog.Builder(this)
+                .setTitle("Konfirmasi Logout")
+                .setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
+                .setPositiveButton("Iya") { _, _ ->
 
-            builder.setTitle("Konfirmasi Logout")
-            builder.setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
+                    Toast.makeText(this, "Berhasil Logout", Toast.LENGTH_SHORT).show()
+                    finish()
 
-            builder.setPositiveButton("Iya") { _, _ ->
+                }
+                .setNegativeButton("Batal") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
+        }
 
-                Toast.makeText(this, "Berhasil Logout", Toast.LENGTH_SHORT).show()
-
-                val intent = Intent(this, LoginActivity::class.java)
-                intent.flags =
-                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-
-                startActivity(intent)
-                finish()
-            }
-
-            builder.setNegativeButton("Batal") { dialog, _ ->
-                dialog.dismiss()
-            }
-
-            builder.create().show()
+        // TOMBOL TAMBAH PRODUK
+        btnTambah.setOnClickListener {
+            showTambahProdukPopup()
         }
 
         // RECYCLERVIEW
-        recyclerProduk.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        recyclerManajemenProduk.layoutManager = GridLayoutManager(this, 4)
 
-        val productList = listOf(
-            Product("Buket Uang 100k", 150000, R.drawable.buket1, "Buket uang mewah"),
-            Product("Buket Uang 50k", 200000, R.drawable.buket2, "Buket estetik"),
-            Product("Buket Bunga Biru Hitam", 180000, R.drawable.buket3, "Buket elegan"),
-            Product("Buket Biru Wisuda", 220000, R.drawable.buket4, "Buket wisuda"),
-            Product("Buket Silver", 250000, R.drawable.buket5, "Buket mewah")
-        )
-
-        val adapter = ProductAdapter(productList)
-        recyclerProduk.adapter = adapter
-
-        // TAB PINDAH HALAMAN
-        tabKatalog.setOnClickListener {
-            startActivity(Intent(this, KatalogActivity::class.java))
-        }
-
-        btnCart.setOnClickListener {
-            startActivity(Intent(this, KeranjangActivity::class.java))
-        }
+        adapter = ManajemenProdukAdapter(productList)
+        recyclerManajemenProduk.adapter = adapter
 
         // EDGE TO EDGE
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainProduk)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        // BACK BUTTON HANDLER
+        // BACK BUTTON
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
 
@@ -131,7 +110,6 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     finish()
                 }
-
             }
         })
     }
@@ -213,6 +191,66 @@ class MainActivity : AppCompatActivity() {
                 pin = pin.dropLast(1)
                 updatePin()
             }
+        }
+    }
+
+
+    // POPUP TAMBAH PRODUK
+    private fun showTambahProdukPopup() {
+
+        val view = LayoutInflater.from(this)
+            .inflate(R.layout.popup_tambah_produk, null)
+
+        val imgProduct = view.findViewById<ImageView>(R.id.ivProductImage)
+        val etName = view.findViewById<EditText>(R.id.etProductName)
+        val etPrice = view.findViewById<EditText>(R.id.etProductPrice)
+        val etDesc = view.findViewById<EditText>(R.id.etProductDesc)
+        val btnSave = view.findViewById<MaterialButton>(R.id.btnSaveProduct)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(view)
+            .create()
+
+        dialog.show()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        // klik gambar
+        imgProduct.setOnClickListener {
+
+            // sementara pakai gambar default dulu
+            selectedImageRes = R.drawable.buket1
+
+            imgProduct.setImageResource(selectedImageRes)
+
+            Toast.makeText(this, "Gambar dipilih", Toast.LENGTH_SHORT).show()
+        }
+
+        // tombol simpan
+        btnSave.setOnClickListener {
+
+            val nama = etName.text.toString()
+            val harga = etPrice.text.toString().toIntOrNull() ?: 0
+            val desc = etDesc.text.toString()
+
+            if (nama.isEmpty()) {
+                Toast.makeText(this, "Nama produk harus diisi", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val produkBaru = Product(
+                nama,
+                harga,
+                selectedImageRes,
+                desc
+            )
+
+            productList.add(produkBaru)
+
+            adapter.notifyItemInserted(productList.size - 1)
+
+            Toast.makeText(this, "Produk berhasil ditambahkan", Toast.LENGTH_SHORT).show()
+
+            dialog.dismiss()
         }
     }
 }

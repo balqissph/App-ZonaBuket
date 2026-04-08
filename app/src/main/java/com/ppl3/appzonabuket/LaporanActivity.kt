@@ -8,49 +8,38 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 
-class MainActivity : AppCompatActivity() {
+class LaporanActivity : AppCompatActivity() {
 
-    lateinit var recyclerProduk: RecyclerView
-    lateinit var tabKatalog: TextView
     lateinit var drawerLayout: DrawerLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_laporan)
 
-        // INISIALISASI VIEW
-        recyclerProduk = findViewById(R.id.recyclerProduk)
-        tabKatalog = findViewById(R.id.tabKatalog)
+        val recyclerLaporan = findViewById<RecyclerView>(R.id.recyclerLaporan)
+
         drawerLayout = findViewById(R.id.drawerLayout)
-
         val btnMenu = findViewById<ImageView>(R.id.btnMenu)
-        val btnCart = findViewById<ImageView>(R.id.btnCart)
 
         val menuProfile = findViewById<LinearLayout>(R.id.menuProfile)
         val menuLaporan = findViewById<LinearLayout>(R.id.menuLaporan)
         val menuManajemen = findViewById<LinearLayout>(R.id.menuManajemen)
         val btnLogout = findViewById<MaterialButton>(R.id.btnLogout)
 
-        // SIDEBAR
         btnMenu.setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
 
         menuProfile.setOnClickListener {
-            Toast.makeText(this, "Membuka Profile...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Membuka Profile", Toast.LENGTH_SHORT).show()
             drawerLayout.closeDrawer(GravityCompat.START)
         }
 
@@ -64,76 +53,71 @@ class MainActivity : AppCompatActivity() {
             showPinPopup(ProdukActivity::class.java)
         }
 
-        // LOGOUT POPUP
+        // LOGOUT
         btnLogout.setOnClickListener {
 
-            val builder = AlertDialog.Builder(this)
+            AlertDialog.Builder(this)
+                .setTitle("Konfirmasi Logout")
+                .setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
+                .setPositiveButton("Iya") { _, _ ->
 
-            builder.setTitle("Konfirmasi Logout")
-            builder.setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
+                    Toast.makeText(this, "Berhasil Logout", Toast.LENGTH_SHORT).show()
+                    finish()
 
-            builder.setPositiveButton("Iya") { _, _ ->
-
-                Toast.makeText(this, "Berhasil Logout", Toast.LENGTH_SHORT).show()
-
-                val intent = Intent(this, LoginActivity::class.java)
-                intent.flags =
-                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-
-                startActivity(intent)
-                finish()
-            }
-
-            builder.setNegativeButton("Batal") { dialog, _ ->
-                dialog.dismiss()
-            }
-
-            builder.create().show()
+                }
+                .setNegativeButton("Batal") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
         }
 
-        // RECYCLERVIEW
-        recyclerProduk.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        recyclerLaporan.layoutManager = LinearLayoutManager(this)
 
-        val productList = listOf(
-            Product("Buket Uang 100k", 150000, R.drawable.buket1, "Buket uang mewah"),
-            Product("Buket Uang 50k", 200000, R.drawable.buket2, "Buket estetik"),
-            Product("Buket Bunga Biru Hitam", 180000, R.drawable.buket3, "Buket elegan"),
-            Product("Buket Biru Wisuda", 220000, R.drawable.buket4, "Buket wisuda"),
-            Product("Buket Silver", 250000, R.drawable.buket5, "Buket mewah")
+        val laporanList = listOf(
+            Laporan(
+                "11:05 / 4-5-2025",
+                "Buket Bunga Satin Biru Hitam",
+                "Rp.150.000",
+                2,
+                "Rp.300.000",
+                "Qris"
+            ),
+            Laporan(
+                "15:33 / 11-5-2025",
+                "Buket Uang Putih",
+                "Rp.2.000.000",
+                2,
+                "Rp.4.000.000",
+                "Transfer BCA"
+            ),
+            Laporan(
+                "20:55 / 11-5-2025",
+                "Buket Bunga Satin Putih",
+                "Rp.100.000",
+                1,
+                "Rp.100.000",
+                "Cash"
+            ),
+            Laporan(
+                "08:24 / 13-5-2025",
+                "Buket Bunga Wisuda + Boneka",
+                "Rp.200.000",
+                7,
+                "Rp.1.400.000",
+                "Cash"
+            ),
+            Laporan(
+                "09:05 / 13-5-2025",
+                "Buket Bunga Pink Gold",
+                "Rp.85.000",
+                2,
+                "Rp.170.000",
+                "Transfer Mandiri"
+            )
         )
 
-        val adapter = ProductAdapter(productList)
-        recyclerProduk.adapter = adapter
-
-        // TAB PINDAH HALAMAN
-        tabKatalog.setOnClickListener {
-            startActivity(Intent(this, KatalogActivity::class.java))
-        }
-
-        btnCart.setOnClickListener {
-            startActivity(Intent(this, KeranjangActivity::class.java))
-        }
-
-        // EDGE TO EDGE
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
-        // BACK BUTTON HANDLER
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-
-                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    drawerLayout.closeDrawer(GravityCompat.START)
-                } else {
-                    finish()
-                }
-
-            }
-        })
+        val adapter = LaporanAdapter(laporanList)
+        recyclerLaporan.adapter = adapter
     }
 
     // POPUP PIN

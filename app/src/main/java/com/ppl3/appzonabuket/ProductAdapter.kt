@@ -27,7 +27,7 @@ class ProductAdapter(private val productList: List<Product>) :
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_product, parent, false)
+            .inflate(R.layout.item_produk, parent, false)
         return ProductViewHolder(view)
     }
 
@@ -60,14 +60,12 @@ class ProductAdapter(private val productList: List<Product>) :
         }
     }
 
-    // ==========================================
     // FUNGSI UNTUK MENAMPILKAN POPUP DETAIL
-    // ==========================================
     private fun tampilkanPopupProduk(context: Context, produk: Product) {
         val dialog = Dialog(context)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         // Memanggil file layout dialog yang sudah kita buat sebelumnya
-        dialog.setContentView(R.layout.detail_produk)
+        dialog.setContentView(R.layout.popup_detail_produk)
 
         // Membuat background dialog menjadi transparan agar ujung CardView terlihat membulat
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
