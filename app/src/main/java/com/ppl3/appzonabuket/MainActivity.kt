@@ -20,12 +20,18 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var recyclerProduct: RecyclerView
     lateinit var tabKatalog: TextView
     lateinit var drawerLayout: DrawerLayout
+
+    // Deklarasi untuk Firebase dan Adapter
+    private lateinit var db: FirebaseFirestore
+    private val productList = mutableListOf<Product>()
+    private lateinit var adapter: ProductAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         menuProfile.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
             Handler(Looper.getMainLooper()).postDelayed({
-                startActivity(Intent(this, ProfileActivity::class.java))
+                startActivity(Intent(this@MainActivity, ProfileActivity::class.java))
             }, 250)
         }
 
@@ -71,12 +77,12 @@ class MainActivity : AppCompatActivity() {
 
         // --- POPUP KONFIRMASI LOGOUT ---
         btnLogout.setOnClickListener {
-            val builder = AlertDialog.Builder(this)
+            val builder = AlertDialog.Builder(this@MainActivity)
             builder.setTitle("Konfirmasi Logout")
             builder.setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
             builder.setPositiveButton("Iya") { dialog, which ->
-                Toast.makeText(this, "Berhasil Logout", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, LoginActivity::class.java)
+                Toast.makeText(this@MainActivity, "Berhasil Logout", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this@MainActivity, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
                 finish()
@@ -85,26 +91,54 @@ class MainActivity : AppCompatActivity() {
             builder.show()
         }
 
-        // --- KODE RECYCLERVIEW & TAB ---
+        // --- KODE RECYCLERVIEW & FIREBASE FIRESTORE ---
         recyclerProduct.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
-        val productList = listOf(
-            Product("Buket Uang 100k", 150000, R.drawable.buket1, "Berikan kejutan paling berkesan..."),
-            Product("Buket Uang 50k", 200000, R.drawable.buket2, "Cari hadiah yang pasti disukai?..."),
-            Product("Buket Bunga Biru Hitam", 180000,  R.drawable.buket3, "Tampil beda dengan Buket..."),
-            Product("Buket Biru Wisuda", 220000, R.drawable.buket4, "Rayakan momen kelulusan..."),
-            Product("Buket Silver", 250000, R.drawable.buket5, "Simbol kemewahan dan cinta...")
-        )
-
-        val adapter = ProductAdapter(productList)
+        adapter = ProductAdapter(productList)
         recyclerProduct.adapter = adapter
 
+        // Inisialisasi Firestore
+        db = FirebaseFirestore.getInstance()
+
+        // Mengambil data dari Firestore
+        db.collection("produk")
+            .get()
+            .addOnSuccessListener { result ->
+                productList.clear()
+
+                for (document in result) {
+                    val nama = document.getString("nama") ?: ""
+                    val harga = document.getLong("harga")?.toInt() ?: 0
+                    val deskripsi = document.getString("deskripsi") ?: ""
+
+                    // Ambil nama file gambar dari Firestore (misal: "buket1")
+                    val namaGambar = document.getString("gambar") ?: "buket1"
+
+                    // Ubah nama file teks tersebut menjadi Resource ID (Int) bawaan drawable
+                    var gambarId = resources.getIdentifier(namaGambar, "drawable", packageName)
+
+                    // Kalau namanya salah ketik atau tidak ditemukan, beri gambar default
+                    if (gambarId == 0) {
+                        gambarId = R.drawable.buket1
+                    }
+
+                    productList.add(Product(name = nama, price = harga, image = gambarId, description = deskripsi))
+                }
+
+                adapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this@MainActivity, "Gagal mengambil data: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
+
+        // --- TAB & LAINNYA ---
         tabKatalog.setOnClickListener {
-            startActivity(Intent(this, KatalogActivity::class.java))
+            startActivity(Intent(this@MainActivity, KatalogActivity::class.java))
+            // Opsional: tambahkan finish() di sini jika tidak ingin MainActivity menumpuk di belakang
         }
 
         btnCart.setOnClickListener {
-            startActivity(Intent(this, KeranjangActivity::class.java))
+            startActivity(Intent(this@MainActivity, KeranjangActivity::class.java))
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -120,7 +154,7 @@ class MainActivity : AppCompatActivity() {
         val tvPinIndicator = dialogView.findViewById<TextView>(R.id.tvPinIndicator)
         val btnDelete = dialogView.findViewById<ImageButton>(R.id.btnDelete)
 
-        val builder = AlertDialog.Builder(this)
+        val builder = AlertDialog.Builder(this@MainActivity)
         builder.setView(dialogView)
         val dialog = builder.create()
 
@@ -151,11 +185,11 @@ class MainActivity : AppCompatActivity() {
                         // Beri jeda sedikit agar user bisa melihat bintang ke-6 muncul
                         Handler(Looper.getMainLooper()).postDelayed({
                             if (enteredPin == correctPin) {
-                                Toast.makeText(this, "Akses Diberikan", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@MainActivity, "Akses Diberikan", Toast.LENGTH_SHORT).show()
                                 dialog.dismiss()
-                                startActivity(Intent(this, targetActivity))
+                                startActivity(Intent(this@MainActivity, targetActivity))
                             } else {
-                                Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@MainActivity, "PIN Salah!", Toast.LENGTH_SHORT).show()
                                 enteredPin = ""
                                 tvPinIndicator.text = "" // Reset indikator jika salah
                             }

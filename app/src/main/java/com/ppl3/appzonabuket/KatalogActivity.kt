@@ -20,11 +20,15 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import com.google.firebase.firestore.FirebaseFirestore
 
 class KatalogActivity : AppCompatActivity() {
 
-    // Deklarasi drawerLayout di sini agar bisa diakses oleh onBackPressed()
+    // Deklarasi variabel global
     lateinit var drawerLayout: DrawerLayout
+    private lateinit var db: FirebaseFirestore
+    private val productList = mutableListOf<Product>()
+    private lateinit var adapter: ProductAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,20 +54,17 @@ class KatalogActivity : AppCompatActivity() {
         // LOGIKA SIDEBAR & MENU
         // ==========================================
 
-        // Buka Sidebar saat tombol menu di pojok kiri atas diklik
         btnMenu.setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
 
-        // Aksi klik menu Profile
         menuProfile.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
             Handler(Looper.getMainLooper()).postDelayed({
-                startActivity(Intent(this, ProfileActivity::class.java))
+                startActivity(Intent(this@KatalogActivity, ProfileActivity::class.java))
             }, 250)
         }
 
-        // Aksi klik menu Laporan Penjualan (Panggil PIN)
         menuLaporan.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
             Handler(Looper.getMainLooper()).postDelayed({
@@ -71,7 +72,6 @@ class KatalogActivity : AppCompatActivity() {
             }, 250)
         }
 
-        // Aksi klik menu Manajemen Produk (Panggil PIN)
         menuManajemen.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
             Handler(Looper.getMainLooper()).postDelayed({
@@ -79,22 +79,19 @@ class KatalogActivity : AppCompatActivity() {
             }, 250)
         }
 
-        // POPUP KONFIRMASI LOGOUT
         btnLogout.setOnClickListener {
-            val builder = AlertDialog.Builder(this)
+            val builder = AlertDialog.Builder(this@KatalogActivity)
             builder.setTitle("Konfirmasi Logout")
             builder.setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
 
-            // Tombol Iya
             builder.setPositiveButton("Iya") { dialog, which ->
-                Toast.makeText(this, "Berhasil Logout", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, LoginActivity::class.java)
+                Toast.makeText(this@KatalogActivity, "Berhasil Logout", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this@KatalogActivity, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
                 finish()
             }
 
-            // Tombol Batal
             builder.setNegativeButton("Batal") { dialog, which ->
                 dialog.dismiss()
             }
@@ -104,36 +101,60 @@ class KatalogActivity : AppCompatActivity() {
         }
 
         // ==========================================
-        // KODE RECYCLERVIEW & TAB (BAWAAN KAMU)
+        // KODE RECYCLERVIEW & FIREBASE FIRESTORE
         // ==========================================
 
-        // Grid 4 kolom
         recyclerKatalog.layoutManager = GridLayoutManager(this, 4)
 
-        // DATA PRODUK KATALOG
-        val productList = listOf(
-            Product("Buket Mawar", 150000, R.drawable.buket1, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Wisuda", 200000, R.drawable.buket2, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Ulang Tahun", 180000, R.drawable.buket3, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Anniversary", 220000, R.drawable.buket4, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Baby", 170000, R.drawable.buket5, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Graduation", 210000, R.drawable.buket6, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Pink", 190000, R.drawable.buket7, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Lily", 230000, R.drawable.buket8,"Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih.")
-        )
-
-        val adapter = ProductAdapter(productList)
+        adapter = ProductAdapter(productList)
         recyclerKatalog.adapter = adapter
 
-        // Klik tab REKOMENDASI → kembali ke MainActivity
+        // Inisialisasi Firestore
+        db = FirebaseFirestore.getInstance()
+
+        db.collection("produk")
+            .get()
+            .addOnSuccessListener { result ->
+                productList.clear()
+
+                for (document in result) {
+                    val nama = document.getString("nama") ?: ""
+                    val harga = document.getLong("harga")?.toInt() ?: 0
+                    val deskripsi = document.getString("deskripsi") ?: ""
+
+                    // Ambil nama file gambar dari Firestore (misal: "buket1")
+                    val namaGambar = document.getString("gambar") ?: "buket1"
+
+                    // Ubah nama file teks tersebut menjadi Resource ID (Int) bawaan drawable
+                    var gambarId = resources.getIdentifier(namaGambar, "drawable", packageName)
+
+                    // Kalau namanya salah ketik atau tidak ditemukan, beri gambar default
+                    if (gambarId == 0) {
+                        gambarId = R.drawable.buket1
+                    }
+
+                    // Menyesuaikan dengan parameter di Product.kt kamu
+                    productList.add(Product(name = nama, price = harga, image = gambarId, description = deskripsi))
+                }
+
+                adapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this@KatalogActivity, "Gagal mengambil data: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
+
+        // ==========================================
+        // KLIK TAB & TOMBOL LAINNYA
+        // ==========================================
+
         tabRekomendasi.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this@KatalogActivity, MainActivity::class.java)
             startActivity(intent)
-            finish() // Tutup KatalogActivity agar memori lega
+            finish()
         }
 
         btnCart.setOnClickListener {
-            startActivity(Intent(this, KeranjangActivity::class.java))
+            startActivity(Intent(this@KatalogActivity, KeranjangActivity::class.java))
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainKatalog)) { v, insets ->
@@ -149,15 +170,14 @@ class KatalogActivity : AppCompatActivity() {
         val tvPinIndicator = dialogView.findViewById<TextView>(R.id.tvPinIndicator)
         val btnDelete = dialogView.findViewById<ImageButton>(R.id.btnDelete)
 
-        val builder = AlertDialog.Builder(this)
+        val builder = AlertDialog.Builder(this@KatalogActivity)
         builder.setView(dialogView)
         val dialog = builder.create()
 
-        // Membuat background dialog menjadi transparan
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         var enteredPin = ""
-        val correctPin = "123456" // Ganti PIN di sini
+        val correctPin = "123456"
 
         val numberButtons = listOf(
             R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4,
@@ -175,11 +195,11 @@ class KatalogActivity : AppCompatActivity() {
                     if (enteredPin.length == 6) {
                         Handler(Looper.getMainLooper()).postDelayed({
                             if (enteredPin == correctPin) {
-                                Toast.makeText(this, "Akses Diberikan", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@KatalogActivity, "Akses Diberikan", Toast.LENGTH_SHORT).show()
                                 dialog.dismiss()
-                                startActivity(Intent(this, targetActivity))
+                                startActivity(Intent(this@KatalogActivity, targetActivity))
                             } else {
-                                Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@KatalogActivity, "PIN Salah!", Toast.LENGTH_SHORT).show()
                                 enteredPin = ""
                                 tvPinIndicator.text = ""
                             }
@@ -199,7 +219,6 @@ class KatalogActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    // Fungsi tambahan: Jika menu terbuka dan tombol back HP ditekan, tutup menu dulu
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)
