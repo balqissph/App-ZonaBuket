@@ -2,12 +2,16 @@ package com.ppl3.appzonabuket
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.LayoutInflater
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AlertDialog // Pastikan import ini ada
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
@@ -28,104 +32,81 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        // Inisialisasi View dari layout utama
         recyclerProduct = findViewById(R.id.recyclerProduk)
         tabKatalog = findViewById(R.id.tabKatalog)
         drawerLayout = findViewById(R.id.drawerLayout)
         val btnMenu = findViewById<ImageView>(R.id.btnMenu)
         val btnCart = findViewById<ImageView>(R.id.btnCart)
 
-        // Inisialisasi View dari Sidebar (Menu Samping)
         val menuProfile = findViewById<LinearLayout>(R.id.menuProfile)
         val menuLaporan = findViewById<LinearLayout>(R.id.menuLaporan)
         val menuManajemen = findViewById<LinearLayout>(R.id.menuManajemen)
         val btnLogout = findViewById<MaterialButton>(R.id.btnLogout)
 
         // --- LOGIKA SIDEBAR ---
-
-        // Buka Sidebar saat tombol menu di pojok kiri atas diklik
         btnMenu.setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
 
-        // Aksi klik menu Profile
         menuProfile.setOnClickListener {
-            Toast.makeText(this, "Membuka Profile...", Toast.LENGTH_SHORT).show()
             drawerLayout.closeDrawer(GravityCompat.START)
-            // startActivity(Intent(this, ProfileActivity::class.java))
+            Handler(Looper.getMainLooper()).postDelayed({
+                startActivity(Intent(this, ProfileActivity::class.java))
+            }, 250)
         }
 
-        // Aksi klik menu Laporan Penjualan
         menuLaporan.setOnClickListener {
-            Toast.makeText(this, "Membuka Laporan Penjualan...", Toast.LENGTH_SHORT).show()
             drawerLayout.closeDrawer(GravityCompat.START)
-            // startActivity(Intent(this, LaporanActivity::class.java))
+            Handler(Looper.getMainLooper()).postDelayed({
+                showPinDialog(LaporanActivity::class.java)
+            }, 250)
         }
 
-        // Aksi klik menu Manajemen Produk
         menuManajemen.setOnClickListener {
-            Toast.makeText(this, "Membuka Manajemen Produk...", Toast.LENGTH_SHORT).show()
             drawerLayout.closeDrawer(GravityCompat.START)
-            // startActivity(Intent(this, ManajemenActivity::class.java))
+            Handler(Looper.getMainLooper()).postDelayed({
+                showPinDialog(ProdukActivity::class.java)
+            }, 250)
         }
 
         // --- POPUP KONFIRMASI LOGOUT ---
         btnLogout.setOnClickListener {
-            // 1. Buat builder untuk AlertDialog
             val builder = AlertDialog.Builder(this)
-
-            // 2. Atur Judul dan Pesan popup
             builder.setTitle("Konfirmasi Logout")
             builder.setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
-
-            // 3. Jika tombol "Iya" diklik
             builder.setPositiveButton("Iya") { dialog, which ->
                 Toast.makeText(this, "Berhasil Logout", Toast.LENGTH_SHORT).show()
-
-                // Pindah ke halaman Login
                 val intent = Intent(this, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
-                finish() // Menutup MainActivity
+                finish()
             }
-
-            // 4. Jika tombol "Batal" diklik
-            builder.setNegativeButton("Batal") { dialog, which ->
-                // Tutup popup saja tanpa melakukan apa-apa
-                dialog.dismiss()
-            }
-
-            // 5. Tampilkan dialognya
-            val dialog: AlertDialog = builder.create()
-            dialog.show()
+            builder.setNegativeButton("Batal") { dialog, which -> dialog.dismiss() }
+            builder.show()
         }
 
         // --- KODE RECYCLERVIEW & TAB ---
-
-        recyclerProduct.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        recyclerProduct.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
         val productList = listOf(
-            Product("Buket Uang 100k", 150000, R.drawable.buket1, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Uang 50k", 200000, R.drawable.buket2, "Cari hadiah yang pasti disukai? Buket Uang pecahan Rp50.000 ini adalah jawabannya! Warna biru dari uang 50 ribuan memberikan kesan visual yang sangat estetik, kalem, dan eye-catching. Cocok untuk hadiah sahabat, pacar, atau keluarga tercinta."),
-            Product("Buket Bunga Biru Hitam", 180000,  R.drawable.buket3, "Tampil beda dengan Buket Bunga Satin perpaduan warna Biru dan Hitam! Kombinasi warna ini menciptakan aura yang misterius, edgy, sekaligus sangat elegan. Sangat direkomendasikan untuk hadiah pria, atau bagi mereka yang menyukai gaya anti-mainstream dan berkelas."),
-            Product("Buket Biru Wisuda", 220000, R.drawable.buket4, "Rayakan momen kelulusan orang terdekat dengan Buket Biru spesial Wisuda! Warna biru melambangkan kecerdasan, kepercayaan diri, dan masa depan yang cerah. Buket ini dirancang khusus untuk membuat foto wisuda menjadi lebih hidup dan fotogenik."),
-            Product("Buket Silver", 250000, R.drawable.buket5, "Simbol kemewahan dan cinta yang tak lekang oleh waktu. Buket Bunga Satin berwarna Silver ini memantulkan cahaya dengan indah, memberikan kesan glamor kelas atas. Pilihan sempurna untuk momen-momen sakral seperti anniversary pernikahan, pertunangan, atau kado Hari Ibu.")
+            Product("Buket Uang 100k", 150000, R.drawable.buket1, "Berikan kejutan paling berkesan..."),
+            Product("Buket Uang 50k", 200000, R.drawable.buket2, "Cari hadiah yang pasti disukai?..."),
+            Product("Buket Bunga Biru Hitam", 180000,  R.drawable.buket3, "Tampil beda dengan Buket..."),
+            Product("Buket Biru Wisuda", 220000, R.drawable.buket4, "Rayakan momen kelulusan..."),
+            Product("Buket Silver", 250000, R.drawable.buket5, "Simbol kemewahan dan cinta...")
         )
 
         val adapter = ProductAdapter(productList)
         recyclerProduct.adapter = adapter
 
         tabKatalog.setOnClickListener {
-            val intent = Intent(this, KatalogActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, KatalogActivity::class.java))
         }
 
         btnCart.setOnClickListener {
             startActivity(Intent(this, KeranjangActivity::class.java))
         }
 
-        // Setting Padding Sistem Bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -133,7 +114,68 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Fungsi tambahan: Jika menu terbuka dan tombol back ditekan, tutup menu dulu
+    // --- FUNGSI UNTUK MENAMPILKAN POPUP PIN CUSTOM KEYPAD ---
+    private fun showPinDialog(targetActivity: Class<*>) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.popup_pin, null)
+        val tvPinIndicator = dialogView.findViewById<TextView>(R.id.tvPinIndicator)
+        val btnDelete = dialogView.findViewById<ImageButton>(R.id.btnDelete)
+
+        val builder = AlertDialog.Builder(this)
+        builder.setView(dialogView)
+        val dialog = builder.create()
+
+        // Membuat background dialog menjadi transparan agar sudut lengkung (bg_popup_pin) terlihat rapi
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        var enteredPin = ""
+        val correctPin = "123456" // Ganti PIN di sini
+
+        // Daftar ID tombol angka
+        val numberButtons = listOf(
+            R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4,
+            R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9
+        )
+
+        // Memberikan aksi klik pada semua tombol angka
+        for (id in numberButtons) {
+            dialogView.findViewById<TextView>(id).setOnClickListener { view ->
+                if (enteredPin.length < 6) {
+                    val number = (view as TextView).text.toString()
+                    enteredPin += number
+
+                    // Menampilkan indikator bintang (*) sesuai jumlah PIN yang diinput
+                    tvPinIndicator.text = "*".repeat(enteredPin.length)
+
+                    // Jika PIN sudah 6 digit, otomatis cek kebenaran
+                    if (enteredPin.length == 6) {
+                        // Beri jeda sedikit agar user bisa melihat bintang ke-6 muncul
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            if (enteredPin == correctPin) {
+                                Toast.makeText(this, "Akses Diberikan", Toast.LENGTH_SHORT).show()
+                                dialog.dismiss()
+                                startActivity(Intent(this, targetActivity))
+                            } else {
+                                Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
+                                enteredPin = ""
+                                tvPinIndicator.text = "" // Reset indikator jika salah
+                            }
+                        }, 200)
+                    }
+                }
+            }
+        }
+
+        // Aksi klik tombol Hapus (Delete)
+        btnDelete.setOnClickListener {
+            if (enteredPin.isNotEmpty()) {
+                enteredPin = enteredPin.dropLast(1)
+                tvPinIndicator.text = "*".repeat(enteredPin.length)
+            }
+        }
+
+        dialog.show()
+    }
+
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)

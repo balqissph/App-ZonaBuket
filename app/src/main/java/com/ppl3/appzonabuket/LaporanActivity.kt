@@ -2,6 +2,8 @@ package com.ppl3.appzonabuket
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -34,36 +36,45 @@ class LaporanActivity : AppCompatActivity() {
         val menuManajemen = findViewById<LinearLayout>(R.id.menuManajemen)
         val btnLogout = findViewById<MaterialButton>(R.id.btnLogout)
 
+        // --- KONTROL SIDEBAR ---
         btnMenu.setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
 
         menuProfile.setOnClickListener {
-            Toast.makeText(this, "Membuka Profile", Toast.LENGTH_SHORT).show()
             drawerLayout.closeDrawer(GravityCompat.START)
+            Handler(Looper.getMainLooper()).postDelayed({
+                startActivity(Intent(this, ProfileActivity::class.java))
+            }, 250)
         }
 
         menuLaporan.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            showPinPopup(LaporanActivity::class.java)
+            // Kalau kamu udah di Laporan dan klik Laporan lagi, sebenernya gak perlu ngapa-ngapain,
+            // tapi tetep aku kasih pop up pin sesuai kodemu biar konsisten.
+            Handler(Looper.getMainLooper()).postDelayed({
+                showPinDialog(LaporanActivity::class.java)
+            }, 250)
         }
 
         menuManajemen.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            showPinPopup(ProdukActivity::class.java)
+            Handler(Looper.getMainLooper()).postDelayed({
+                showPinDialog(ProdukActivity::class.java)
+            }, 250)
         }
 
-        // LOGOUT
+        // --- LOGOUT ---
         btnLogout.setOnClickListener {
-
             AlertDialog.Builder(this)
                 .setTitle("Konfirmasi Logout")
                 .setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
                 .setPositiveButton("Iya") { _, _ ->
-
                     Toast.makeText(this, "Berhasil Logout", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, LoginActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
                     finish()
-
                 }
                 .setNegativeButton("Batal") { dialog, _ ->
                     dialog.dismiss()
@@ -71,6 +82,7 @@ class LaporanActivity : AppCompatActivity() {
                 .show()
         }
 
+        // --- RECYCLERVIEW LAPORAN ---
         recyclerLaporan.layoutManager = LinearLayoutManager(this)
 
         val laporanList = listOf(
@@ -120,83 +132,68 @@ class LaporanActivity : AppCompatActivity() {
         recyclerLaporan.adapter = adapter
     }
 
-    // POPUP PIN
-    private fun showPinPopup(targetActivity: Class<*>) {
+    // --- FUNGSI UNTUK MENAMPILKAN POPUP PIN CUSTOM KEYPAD ---
+    private fun showPinDialog(targetActivity: Class<*>) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.popup_pin, null)
+        val tvPinIndicator = dialogView.findViewById<TextView>(R.id.tvPinIndicator)
+        val btnDelete = dialogView.findViewById<ImageButton>(R.id.btnDelete)
 
-        val view = LayoutInflater.from(this).inflate(R.layout.popup_pin, null)
+        val builder = AlertDialog.Builder(this)
+        builder.setView(dialogView)
+        val dialog = builder.create()
 
-        val tvPin = view.findViewById<TextView>(R.id.tvPinIndicator)
-
-        val btn1 = view.findViewById<TextView>(R.id.btn1)
-        val btn2 = view.findViewById<TextView>(R.id.btn2)
-        val btn3 = view.findViewById<TextView>(R.id.btn3)
-        val btn4 = view.findViewById<TextView>(R.id.btn4)
-        val btn5 = view.findViewById<TextView>(R.id.btn5)
-        val btn6 = view.findViewById<TextView>(R.id.btn6)
-        val btn7 = view.findViewById<TextView>(R.id.btn7)
-        val btn8 = view.findViewById<TextView>(R.id.btn8)
-        val btn9 = view.findViewById<TextView>(R.id.btn9)
-        val btn0 = view.findViewById<TextView>(R.id.btn0)
-
-        val btnDelete = view.findViewById<ImageButton>(R.id.btnDelete)
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(view)
-            .create()
-
-        dialog.show()
+        // Membuat background dialog menjadi transparan
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        var pin = ""
-        val correctPin = "112233"
+        var enteredPin = ""
+        val correctPin = "123456" // Ganti PIN di sini
 
-        fun updatePin() {
-            tvPin.text = "●".repeat(pin.length)
-        }
+        val numberButtons = listOf(
+            R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4,
+            R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9
+        )
 
-        fun addNumber(number: String) {
+        for (id in numberButtons) {
+            dialogView.findViewById<TextView>(id).setOnClickListener { view ->
+                if (enteredPin.length < 6) {
+                    val number = (view as TextView).text.toString()
+                    enteredPin += number
 
-            if (pin.length < 6) {
-                pin += number
-                updatePin()
-            }
+                    tvPinIndicator.text = "●".repeat(enteredPin.length)
 
-            if (pin.length == 6) {
-
-                if (pin == correctPin) {
-
-                    Toast.makeText(this, "PIN Benar", Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
-
-                    val intent = Intent(this, targetActivity)
-                    startActivity(intent)
-
-                } else {
-
-                    Toast.makeText(this, "PIN Salah", Toast.LENGTH_SHORT).show()
-                    pin = ""
-                    updatePin()
-
+                    if (enteredPin.length == 6) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            if (enteredPin == correctPin) {
+                                Toast.makeText(this, "Akses Diberikan", Toast.LENGTH_SHORT).show()
+                                dialog.dismiss()
+                                startActivity(Intent(this, targetActivity))
+                            } else {
+                                Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
+                                enteredPin = ""
+                                tvPinIndicator.text = ""
+                            }
+                        }, 200)
+                    }
                 }
             }
         }
 
-        btn1.setOnClickListener { addNumber("1") }
-        btn2.setOnClickListener { addNumber("2") }
-        btn3.setOnClickListener { addNumber("3") }
-        btn4.setOnClickListener { addNumber("4") }
-        btn5.setOnClickListener { addNumber("5") }
-        btn6.setOnClickListener { addNumber("6") }
-        btn7.setOnClickListener { addNumber("7") }
-        btn8.setOnClickListener { addNumber("8") }
-        btn9.setOnClickListener { addNumber("9") }
-        btn0.setOnClickListener { addNumber("0") }
-
         btnDelete.setOnClickListener {
-            if (pin.isNotEmpty()) {
-                pin = pin.dropLast(1)
-                updatePin()
+            if (enteredPin.isNotEmpty()) {
+                enteredPin = enteredPin.dropLast(1)
+                tvPinIndicator.text = "●".repeat(enteredPin.length)
             }
+        }
+
+        dialog.show()
+    }
+
+    // --- MENGATUR TOMBOL BACK UNTUK SIDEBAR ---
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
         }
     }
 }

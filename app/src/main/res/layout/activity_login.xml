@@ -45,6 +45,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:hintEnabled="false"
                 app:boxBackgroundMode="filled"
                 app:boxCornerRadiusTopStart="30dp"
                 app:boxCornerRadiusTopEnd="30dp"
@@ -62,7 +63,12 @@
                     android:hint="masukan nama anda"
                     android:textSize="16sp"
                     android:padding="12dp"
-                    android:background="@null"/> </com.google.android.material.textfield.TextInputLayout>
+                    android:background="@null"
+
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:imeOptions="actionNext"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
                 android:layout_width="match_parent"
@@ -76,6 +82,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:hintEnabled="false"
                 app:endIconMode="password_toggle"
                 app:boxBackgroundMode="filled"
                 app:boxCornerRadiusTopStart="30dp"
@@ -92,10 +99,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="masukan password anda"
-                    android:inputType="textPassword"
                     android:textSize="16sp"
                     android:padding="12dp"
-                    android:background="@null"/> </com.google.android.material.textfield.TextInputLayout>
+                    android:background="@null"
+
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    android:imeOptions="actionDone"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogin"

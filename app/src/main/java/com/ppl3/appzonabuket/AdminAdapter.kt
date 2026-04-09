@@ -8,9 +8,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 
 class AdminAdapter(
-    private val listAdmin: List<Admin>,
-    private val onEditClick: (Admin) -> Unit) :
-    RecyclerView.Adapter<AdminAdapter.AdminViewHolder>() {
+    // Ubah menjadi MutableList agar item bisa dihapus
+    private val listAdmin: MutableList<Admin>,
+    private val onEditClick: (Admin) -> Unit,
+    // Tambahkan parameter untuk aksi hapus
+    private val onDeleteClick: (Admin, Int) -> Unit
+) : RecyclerView.Adapter<AdminAdapter.AdminViewHolder>() {
 
     class AdminViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvNama: TextView = view.findViewById(R.id.tvNamaAdmin)
@@ -27,8 +30,12 @@ class AdminAdapter(
         val admin = listAdmin[position]
         holder.tvNama.text = admin.nama
 
-        holder.btnEdit.setOnClickListener {onEditClick(admin)}
-        holder.btnHapus.setOnClickListener { /* Logika Hapus */ }
+        holder.btnEdit.setOnClickListener { onEditClick(admin) }
+
+        // Logika Hapus, mengirimkan data admin dan posisi (index)-nya
+        holder.btnHapus.setOnClickListener {
+            onDeleteClick(admin, holder.adapterPosition)
+        }
     }
 
     override fun getItemCount(): Int = listAdmin.size

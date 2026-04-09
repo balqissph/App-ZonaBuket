@@ -2,12 +2,16 @@ package com.ppl3.appzonabuket
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.LayoutInflater
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AlertDialog // Pastikan ini di-import
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
@@ -16,6 +20,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+
 class KatalogActivity : AppCompatActivity() {
 
     // Deklarasi drawerLayout di sini agar bisa diakses oleh onBackPressed()
@@ -52,28 +57,29 @@ class KatalogActivity : AppCompatActivity() {
 
         // Aksi klik menu Profile
         menuProfile.setOnClickListener {
-            Toast.makeText(this, "Membuka Profile...", Toast.LENGTH_SHORT).show()
             drawerLayout.closeDrawer(GravityCompat.START)
-            // startActivity(Intent(this, ProfileActivity::class.java))
+            Handler(Looper.getMainLooper()).postDelayed({
+                startActivity(Intent(this, ProfileActivity::class.java))
+            }, 250)
         }
 
-        // Aksi klik menu Laporan Penjualan
+        // Aksi klik menu Laporan Penjualan (Panggil PIN)
         menuLaporan.setOnClickListener {
-            Toast.makeText(this, "Membuka Laporan Penjualan...", Toast.LENGTH_SHORT).show()
             drawerLayout.closeDrawer(GravityCompat.START)
-            // startActivity(Intent(this, LaporanActivity::class.java))
+            Handler(Looper.getMainLooper()).postDelayed({
+                showPinDialog(LaporanActivity::class.java)
+            }, 250)
         }
 
-        // Aksi klik menu Manajemen Produk
+        // Aksi klik menu Manajemen Produk (Panggil PIN)
         menuManajemen.setOnClickListener {
-            Toast.makeText(this, "Membuka Manajemen Produk...", Toast.LENGTH_SHORT).show()
             drawerLayout.closeDrawer(GravityCompat.START)
-            // startActivity(Intent(this, ManajemenActivity::class.java))
+            Handler(Looper.getMainLooper()).postDelayed({
+                showPinDialog(ProdukActivity::class.java)
+            }, 250)
         }
 
-        // ==========================================
         // POPUP KONFIRMASI LOGOUT
-        // ==========================================
         btnLogout.setOnClickListener {
             val builder = AlertDialog.Builder(this)
             builder.setTitle("Konfirmasi Logout")
@@ -135,6 +141,62 @@ class KatalogActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+    }
+
+    // --- FUNGSI UNTUK MENAMPILKAN POPUP PIN CUSTOM KEYPAD ---
+    private fun showPinDialog(targetActivity: Class<*>) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.popup_pin, null)
+        val tvPinIndicator = dialogView.findViewById<TextView>(R.id.tvPinIndicator)
+        val btnDelete = dialogView.findViewById<ImageButton>(R.id.btnDelete)
+
+        val builder = AlertDialog.Builder(this)
+        builder.setView(dialogView)
+        val dialog = builder.create()
+
+        // Membuat background dialog menjadi transparan
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        var enteredPin = ""
+        val correctPin = "123456" // Ganti PIN di sini
+
+        val numberButtons = listOf(
+            R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4,
+            R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9
+        )
+
+        for (id in numberButtons) {
+            dialogView.findViewById<TextView>(id).setOnClickListener { view ->
+                if (enteredPin.length < 6) {
+                    val number = (view as TextView).text.toString()
+                    enteredPin += number
+
+                    tvPinIndicator.text = "●".repeat(enteredPin.length)
+
+                    if (enteredPin.length == 6) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            if (enteredPin == correctPin) {
+                                Toast.makeText(this, "Akses Diberikan", Toast.LENGTH_SHORT).show()
+                                dialog.dismiss()
+                                startActivity(Intent(this, targetActivity))
+                            } else {
+                                Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
+                                enteredPin = ""
+                                tvPinIndicator.text = ""
+                            }
+                        }, 200)
+                    }
+                }
+            }
+        }
+
+        btnDelete.setOnClickListener {
+            if (enteredPin.isNotEmpty()) {
+                enteredPin = enteredPin.dropLast(1)
+                tvPinIndicator.text = "●".repeat(enteredPin.length)
+            }
+        }
+
+        dialog.show()
     }
 
     // Fungsi tambahan: Jika menu terbuka dan tombol back HP ditekan, tutup menu dulu
