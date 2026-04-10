@@ -45,53 +45,12 @@ class ManageAdminActivity : AppCompatActivity() {
             insets
         }
 
-        // --- INISIALISASI VIEW SIDEBAR ---
-        val btnMenu = findViewById<ImageView>(R.id.btnMenu)
-        val menuProfile = findViewById<LinearLayout>(R.id.menuProfile)
-        val menuLaporan = findViewById<LinearLayout>(R.id.menuLaporan)
-        val menuManajemen = findViewById<LinearLayout>(R.id.menuManajemen)
-        val btnLogout = findViewById<MaterialButton>(R.id.btnLogout)
+        val btnBack = findViewById<ImageView>(R.id.btnBack)
 
-        // --- LOGIKA SIDEBAR ---
-        btnMenu.setOnClickListener {
-            drawerLayout.openDrawer(GravityCompat.START)
-        }
-
-        menuProfile.setOnClickListener {
-            drawerLayout.closeDrawer(GravityCompat.START)
-            Handler(Looper.getMainLooper()).postDelayed({
-                startActivity(Intent(this, ProfileActivity::class.java))
-            }, 250)
-        }
-
-        menuLaporan.setOnClickListener {
-            drawerLayout.closeDrawer(GravityCompat.START)
-            Handler(Looper.getMainLooper()).postDelayed({
-                showPinDialog(LaporanActivity::class.java)
-            }, 250)
-        }
-
-        menuManajemen.setOnClickListener {
-            drawerLayout.closeDrawer(GravityCompat.START)
-            Handler(Looper.getMainLooper()).postDelayed({
-                showPinDialog(ProdukActivity::class.java)
-            }, 250)
-        }
-
-        // --- POPUP KONFIRMASI LOGOUT ---
-        btnLogout.setOnClickListener {
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle("Konfirmasi Logout")
-            builder.setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
-            builder.setPositiveButton("Iya") { dialog, which ->
-                Toast.makeText(this, "Berhasil Logout", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                finish()
-            }
-            builder.setNegativeButton("Batal") { dialog, which -> dialog.dismiss() }
-            builder.show()
+        btnBack.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
         }
 
         // --- KODE MANAGE ADMIN (RECYCLERVIEW) ---
@@ -250,15 +209,6 @@ class ManageAdminActivity : AppCompatActivity() {
             }
 
             alertDialog.dismiss()
-        }
-    }
-
-    // --- MENGATUR TOMBOL BACK UNTUK SIDEBAR ---
-    override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
         }
     }
 }

@@ -14,10 +14,12 @@ class LaporanAdapter(
 
         val tvTimestamp: TextView = itemView.findViewById(R.id.tvTimestamp)
         val tvNamaProduk: TextView = itemView.findViewById(R.id.tvNamaProduk)
+        val tvNotes: TextView = itemView.findViewById(R.id.tvNotes)
         val tvHarga: TextView = itemView.findViewById(R.id.tvHarga)
         val tvJumlah: TextView = itemView.findViewById(R.id.tvJumlah)
         val tvTotal: TextView = itemView.findViewById(R.id.tvTotal)
         val tvPembayaran: TextView = itemView.findViewById(R.id.tvPembayaran)
+        val tvAdmin: TextView = itemView.findViewById(R.id.tvAdmin)
 
     }
 
@@ -39,7 +41,15 @@ class LaporanAdapter(
         holder.tvJumlah.text = laporan.jumlah.toString()
         holder.tvTotal.text = laporan.total
         holder.tvPembayaran.text = laporan.pembayaran
+        holder.tvAdmin.text = laporan.admin
 
+        // tampilkan notes jika ada
+        if (laporan.notes.isNullOrEmpty()) {
+            holder.tvNotes.visibility = View.GONE
+        } else {
+            holder.tvNotes.visibility = View.VISIBLE
+            holder.tvNotes.text = "\"${laporan.notes}\""
+        }
     }
 
     override fun getItemCount(): Int {

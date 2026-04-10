@@ -14,13 +14,28 @@
         android:textColor="#FFFFFF"
         android:textSize="12sp"/>
 
-    <TextView
-        android:id="@+id/tvNamaProduk"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="2"
-        android:textColor="#FFFFFF"
-        android:textSize="12sp"/>
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvNamaProduk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tvNotes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#DDDDDD"
+            android:textSize="11sp"
+            android:visibility="gone"/>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvHarga"
@@ -48,6 +63,14 @@
 
     <TextView
         android:id="@+id/tvPembayaran"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"/>
+
+    <TextView
+        android:id="@+id/tvAdmin"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"

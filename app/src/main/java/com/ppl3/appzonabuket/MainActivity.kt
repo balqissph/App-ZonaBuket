@@ -178,7 +178,7 @@ class MainActivity : AppCompatActivity() {
                     enteredPin += number
 
                     // Menampilkan indikator bintang (*) sesuai jumlah PIN yang diinput
-                    tvPinIndicator.text = "*".repeat(enteredPin.length)
+                    tvPinIndicator.text = "●".repeat(enteredPin.length)
 
                     // Jika PIN sudah 6 digit, otomatis cek kebenaran
                     if (enteredPin.length == 6) {
@@ -203,7 +203,7 @@ class MainActivity : AppCompatActivity() {
         btnDelete.setOnClickListener {
             if (enteredPin.isNotEmpty()) {
                 enteredPin = enteredPin.dropLast(1)
-                tvPinIndicator.text = "*".repeat(enteredPin.length)
+                tvPinIndicator.text = "●".repeat(enteredPin.length)
             }
         }
 
