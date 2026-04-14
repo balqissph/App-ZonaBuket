@@ -27,9 +27,9 @@
                 android:id="@+id/ivProductImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:cardCornerRadius="15dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/tambah_gambar" />
+                android:adjustViewBounds="true"
+                android:src="@drawable/tambah_gambar"/>
         </androidx.cardview.widget.CardView>
 
 
@@ -42,17 +42,18 @@
             android:paddingStart="16dp">
 
             <!-- NAMA PRODUK -->
+
+            <!-- HARGA -->
             <EditText
                 android:id="@+id/etProductName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
                 android:hint="Masukkan Nama Produk"
                 android:textColor="#333333"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:background="@android:color/transparent"/>
+                android:textStyle="bold" />
 
-            <!-- HARGA -->
             <EditText
                 android:id="@+id/etProductPrice"
                 android:layout_width="match_parent"

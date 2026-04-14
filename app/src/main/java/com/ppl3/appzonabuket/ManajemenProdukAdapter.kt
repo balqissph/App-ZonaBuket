@@ -9,7 +9,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class ManajemenProdukAdapter(
-    private val productList: MutableList<Product>
+    private val productList: MutableList<Product>,
+    private val onItemClick: (Product, Int) -> Unit
 ) : RecyclerView.Adapter<ManajemenProdukAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -37,6 +38,12 @@ class ManajemenProdukAdapter(
         holder.tvPrice.text = "Rp ${product.price}"
         holder.tvProductDesc.text = product.description
 
+        // KLIK ITEM UNTUK EDIT
+        holder.itemView.setOnClickListener {
+            onItemClick(product, position)
+        }
+
+        // TOMBOL HAPUS
         holder.btnSampah.setOnClickListener {
 
             productList.removeAt(position)

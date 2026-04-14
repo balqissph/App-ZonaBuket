@@ -12,12 +12,17 @@ class LaporanAdapter(
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
+        // --- TAMBAHAN UNTUK ID PESANAN ---
+        val tvIdPesanan: TextView = itemView.findViewById(R.id.tvIdPesanan)
+
         val tvTimestamp: TextView = itemView.findViewById(R.id.tvTimestamp)
         val tvNamaProduk: TextView = itemView.findViewById(R.id.tvNamaProduk)
+        val tvNotes: TextView = itemView.findViewById(R.id.tvNotes)
         val tvHarga: TextView = itemView.findViewById(R.id.tvHarga)
         val tvJumlah: TextView = itemView.findViewById(R.id.tvJumlah)
         val tvTotal: TextView = itemView.findViewById(R.id.tvTotal)
         val tvPembayaran: TextView = itemView.findViewById(R.id.tvPembayaran)
+        val tvAdmin: TextView = itemView.findViewById(R.id.tvAdmin)
 
     }
 
@@ -33,13 +38,27 @@ class LaporanAdapter(
 
         val laporan = laporanList[position]
 
+        // --- MASUKKAN ID PESANAN KE TEXTVIEW ---
+        holder.tvIdPesanan.text = laporan.idPesanan
+
         holder.tvTimestamp.text = laporan.timestamp
         holder.tvNamaProduk.text = laporan.namaProduk
         holder.tvHarga.text = laporan.harga
-        holder.tvJumlah.text = laporan.jumlah.toString()
+
+        // --- HAPUS .toString() KARENA SEKARANG TIPENYA SUDAH STRING ---
+        holder.tvJumlah.text = laporan.jumlah
+
         holder.tvTotal.text = laporan.total
         holder.tvPembayaran.text = laporan.pembayaran
+        holder.tvAdmin.text = laporan.admin
 
+        // tampilkan notes jika ada
+        if (laporan.notes.isNullOrEmpty()) {
+            holder.tvNotes.visibility = View.GONE
+        } else {
+            holder.tvNotes.visibility = View.VISIBLE
+            holder.tvNotes.text = "\"${laporan.notes}\""
+        }
     }
 
     override fun getItemCount(): Int {

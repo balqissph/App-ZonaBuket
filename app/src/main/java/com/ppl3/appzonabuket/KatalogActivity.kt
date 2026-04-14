@@ -1,10 +1,13 @@
 package com.ppl3.appzonabuket
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -20,42 +23,54 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import com.google.firebase.firestore.FirebaseFirestore
 
 class KatalogActivity : AppCompatActivity() {
 
-    // Deklarasi drawerLayout di sini agar bisa diakses oleh onBackPressed()
-    lateinit var drawerLayout: DrawerLayout
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var db: FirebaseFirestore
+    private val productList = mutableListOf<Product>()
+    private lateinit var adapter: ProductAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_katalog)
 
-        // Inisialisasi View Bawaan
+        // 1. Inisialisasi View Utama
         val recyclerKatalog = findViewById<RecyclerView>(R.id.recyclerKatalog)
         val tabRekomendasi = findViewById<TextView>(R.id.tabRekomendasi)
         val btnCart = findViewById<ImageView>(R.id.btnCart)
-
-        // Inisialisasi Drawer dan Tombol Menu
-        drawerLayout = findViewById(R.id.drawerLayout)
         val btnMenu = findViewById<ImageView>(R.id.btnMenu)
+        drawerLayout = findViewById(R.id.drawerLayout)
 
-        // Inisialisasi View dari Sidebar (Menu Samping)
+        // 2. Inisialisasi Menu Sidebar (Menggunakan VAL)
         val menuProfile = findViewById<LinearLayout>(R.id.menuProfile)
         val menuLaporan = findViewById<LinearLayout>(R.id.menuLaporan)
         val menuManajemen = findViewById<LinearLayout>(R.id.menuManajemen)
+        val menuWaitingPayment = findViewById<LinearLayout>(R.id.menuWaitingPayment)
+        val menuManajemenAdmin = findViewById<LinearLayout>(R.id.menuManajemenAdmin)
         val btnLogout = findViewById<MaterialButton>(R.id.btnLogout)
 
-        // ==========================================
-        // LOGIKA SIDEBAR & MENU
-        // ==========================================
+        // 3. Logika Role & Visibilitas Menu
+        val sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
+        val userRole = sharedPref.getString("role", "admin")
 
-        // Buka Sidebar saat tombol menu di pojok kiri atas diklik
+        // Menu yang KHUSUS untuk Owner
+        if (userRole == "owner") {
+            menuManajemenAdmin.visibility = View.VISIBLE
+        } else {
+            menuManajemenAdmin.visibility = View.GONE
+        }
+
+        // Menu yang BEBAS (Siapapun bisa lihat, ditaruh di luar IF)
+        menuWaitingPayment.visibility = View.VISIBLE
+
+        // 4. Setup Klik Navigasi Sidebar
         btnMenu.setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
 
-        // Aksi klik menu Profile
         menuProfile.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
             Handler(Looper.getMainLooper()).postDelayed({
@@ -63,79 +78,62 @@ class KatalogActivity : AppCompatActivity() {
             }, 250)
         }
 
-        // Aksi klik menu Laporan Penjualan (Panggil PIN)
         menuLaporan.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            Handler(Looper.getMainLooper()).postDelayed({
-                showPinDialog(LaporanActivity::class.java)
-            }, 250)
+            showPinDialog(LaporanActivity::class.java)
         }
 
-        // Aksi klik menu Manajemen Produk (Panggil PIN)
         menuManajemen.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
+            showPinDialog(ProdukActivity::class.java)
+        }
+
+        menuWaitingPayment.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.START)
             Handler(Looper.getMainLooper()).postDelayed({
-                showPinDialog(ProdukActivity::class.java)
+                // Pastikan nama Activity-nya benar
+                startActivity(Intent(this, WaitingPaymentActivity::class.java))
             }, 250)
         }
 
-        // POPUP KONFIRMASI LOGOUT
-        btnLogout.setOnClickListener {
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle("Konfirmasi Logout")
-            builder.setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
-
-            // Tombol Iya
-            builder.setPositiveButton("Iya") { dialog, which ->
-                Toast.makeText(this, "Berhasil Logout", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                finish()
-            }
-
-            // Tombol Batal
-            builder.setNegativeButton("Batal") { dialog, which ->
-                dialog.dismiss()
-            }
-
-            val dialog: AlertDialog = builder.create()
-            dialog.show()
+        menuManajemenAdmin.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.START)
+            showPinDialog(ManageAdminActivity::class.java)
         }
 
-        // ==========================================
-        // KODE RECYCLERVIEW & TAB (BAWAAN KAMU)
-        // ==========================================
+        btnLogout.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Konfirmasi Logout")
+                .setMessage("Apakah Anda yakin ingin keluar?")
+                .setPositiveButton("Iya") { _, _ ->
+                    sharedPref.edit().clear().apply()
+                    val intent = Intent(this, LoginActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
+                }
+                .setNegativeButton("Batal", null)
+                .show()
+        }
 
-        // Grid 4 kolom
+        // 5. Setup RecyclerView & Firestore
         recyclerKatalog.layoutManager = GridLayoutManager(this, 4)
-
-        // DATA PRODUK KATALOG
-        val productList = listOf(
-            Product("Buket Mawar", 150000, R.drawable.buket1, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Wisuda", 200000, R.drawable.buket2, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Ulang Tahun", 180000, R.drawable.buket3, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Anniversary", 220000, R.drawable.buket4, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Baby", 170000, R.drawable.buket5, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Graduation", 210000, R.drawable.buket6, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Pink", 190000, R.drawable.buket7, "Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih."),
-            Product("Buket Lily", 230000, R.drawable.buket8,"Berikan kejutan paling berkesan dengan Buket Uang 100k kami yang super mewah! Dibuat dengan lembaran uang pecahan Rp100.000 baru yang disusun rapi dan presisi, buket ini memancarkan kesan eksklusif dan elegan. Sangat cocok untuk hadiah ulang tahun, anniversary, atau kejutan spesial untuk orang terkasih.")
-        )
-
-        val adapter = ProductAdapter(productList)
+        adapter = ProductAdapter(productList)
         recyclerKatalog.adapter = adapter
+        db = FirebaseFirestore.getInstance()
+        fetchDataFromFirestore()
 
-        // Klik tab REKOMENDASI → kembali ke MainActivity
+        // 6. Navigasi Antar Tab
         tabRekomendasi.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            finish() // Tutup KatalogActivity agar memori lega
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
         }
 
         btnCart.setOnClickListener {
             startActivity(Intent(this, KeranjangActivity::class.java))
         }
 
+        // 7. Handle Window Insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainKatalog)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -143,39 +141,49 @@ class KatalogActivity : AppCompatActivity() {
         }
     }
 
-    // --- FUNGSI UNTUK MENAMPILKAN POPUP PIN CUSTOM KEYPAD ---
+    private fun fetchDataFromFirestore() {
+        db.collection("produk")
+            .get()
+            .addOnSuccessListener { result ->
+                productList.clear()
+                for (document in result) {
+                    val nama = document.getString("nama_produk") ?: "Produk Tanpa Nama"
+                    val harga = document.getLong("harga")?.toInt() ?: 0
+                    val deskripsi = document.getString("deskripsi") ?: ""
+                    val namaGambar = document.getString("gambar")?.trim() ?: "buket1"
+
+                    var gambarId = resources.getIdentifier(namaGambar, "drawable", packageName)
+                    if (gambarId == 0) gambarId = R.drawable.buket1
+
+                    productList.add(Product(nama, harga, gambarId, deskripsi))
+                }
+                adapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Gagal memuat data: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
     private fun showPinDialog(targetActivity: Class<*>) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.popup_pin, null)
         val tvPinIndicator = dialogView.findViewById<TextView>(R.id.tvPinIndicator)
         val btnDelete = dialogView.findViewById<ImageButton>(R.id.btnDelete)
 
-        val builder = AlertDialog.Builder(this)
-        builder.setView(dialogView)
-        val dialog = builder.create()
-
-        // Membuat background dialog menjadi transparan
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         var enteredPin = ""
-        val correctPin = "123456" // Ganti PIN di sini
-
-        val numberButtons = listOf(
-            R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4,
-            R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9
-        )
+        val correctPin = "123456"
+        val numberButtons = listOf(R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4, R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9)
 
         for (id in numberButtons) {
             dialogView.findViewById<TextView>(id).setOnClickListener { view ->
                 if (enteredPin.length < 6) {
-                    val number = (view as TextView).text.toString()
-                    enteredPin += number
-
+                    enteredPin += (view as TextView).text.toString()
                     tvPinIndicator.text = "●".repeat(enteredPin.length)
-
                     if (enteredPin.length == 6) {
                         Handler(Looper.getMainLooper()).postDelayed({
                             if (enteredPin == correctPin) {
-                                Toast.makeText(this, "Akses Diberikan", Toast.LENGTH_SHORT).show()
                                 dialog.dismiss()
                                 startActivity(Intent(this, targetActivity))
                             } else {
@@ -195,11 +203,9 @@ class KatalogActivity : AppCompatActivity() {
                 tvPinIndicator.text = "●".repeat(enteredPin.length)
             }
         }
-
         dialog.show()
     }
 
-    // Fungsi tambahan: Jika menu terbuka dan tombol back HP ditekan, tutup menu dulu
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)
