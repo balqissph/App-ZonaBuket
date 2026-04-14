@@ -59,18 +59,23 @@ class LaporanActivity : AppCompatActivity() {
         }
     }
 
-    // --- FUNGSI YANG DIPERBARUI: GABUNGKAN ITEM BERDASARKAN ID PESANAN ---
+    // --- FUNGSI DIPERBARUI: FILTER HANYA STATUS "Lunas" ---
     private fun ambilDataDariFirebase() {
         val db = FirebaseFirestore.getInstance()
 
-        // Ambil data struk (pesanan) urut dari yang terbaru
+        // Ambil data pesanan yang HANYA berstatus "Lunas"
         db.collection("pesanan")
-            .orderBy("tanggal_pesanan", Query.Direction.DESCENDING)
+            .whereEqualTo("status", "Lunas")
             .get()
             .addOnSuccessListener { resultPesanan ->
                 laporanList.clear()
 
-                for (docPesanan in resultPesanan) {
+                // Sortir secara manual dari yang terbaru agar tidak error di index Firebase
+                val sortedPesanan = resultPesanan.documents.sortedByDescending {
+                    it.getTimestamp("tanggal_pesanan")
+                }
+
+                for (docPesanan in sortedPesanan) {
                     val idPesanan = docPesanan.id
 
                     val date = docPesanan.getTimestamp("tanggal_pesanan")?.toDate()
@@ -107,15 +112,16 @@ class LaporanActivity : AppCompatActivity() {
 
                             // Masukkan ke Data Class Laporan
                             val laporanItem = Laporan(
-                                idPesanan = "ID: ${idPesanan.take(8)}", // Ambil 8 karakter depan ID Pesanan
+                                idPesanan = "ID: ${idPesanan.take(8)}",
                                 timestamp = timestampStr,
-                                namaProduk = listNama.joinToString("\n"), // Gabung ke bawah pakai enter (\n)
+                                namaProduk = listNama.joinToString("\n"),
                                 notes = notesFinal,
-                                harga = listHarga.joinToString("\n"),     // Gabung ke bawah pakai enter (\n)
-                                jumlah = listJumlah.joinToString("\n"),   // Gabung ke bawah pakai enter (\n)
-                                total = "Rp.$totalHargaStruk",            // Menampilkan Total Akhir (keseluruhan)
+                                harga = listHarga.joinToString("\n"),
+                                jumlah = listJumlah.joinToString("\n"),
+                                total = "Rp.$totalHargaStruk",
                                 pembayaran = pembayaran,
-                                admin = "Admin 1"
+                                admin = "Admin 1",
+                                status = "Lunas" // <-- Wajib ditambahkan agar sesuai dengan Data Class Laporan.kt yang baru
                             )
 
                             laporanList.add(laporanItem)

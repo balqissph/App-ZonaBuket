@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -9,48 +10,42 @@
         android:roundIcon="@drawable/ss_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppZonaBuket">
-
+        <activity
+            android:name=".WaitingPaymentActivity"
+            android:exported="true" />
         <activity
             android:name=".SplashActivity"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".LoginActivity"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="false" />
-
         <activity
             android:name=".KeranjangActivity"
             android:exported="false" />
-
         <activity
             android:name=".KatalogActivity"
             android:exported="false" />
-
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />
-
         <activity
             android:name=".LaporanActivity"
             android:exported="false" />
-
         <activity
             android:name=".ProdukActivity"
             android:exported="false" />
-
         <activity
             android:name=".ManageAdminActivity"
             android:exported="true" />
-
     </application>
 
 </manifest>

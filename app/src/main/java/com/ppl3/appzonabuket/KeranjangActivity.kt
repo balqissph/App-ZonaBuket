@@ -73,7 +73,6 @@ class KeranjangActivity : AppCompatActivity() {
         }
         recyclerCart.adapter = adapter
 
-        // Update tampilan awal
         updateTampilanKeranjang()
 
         // 4. Logika Pilih Metode Pembayaran
@@ -111,14 +110,12 @@ class KeranjangActivity : AppCompatActivity() {
     }
 
     private fun updateTampilanKeranjang() {
-        // Hitung Total
         var total = 0
         for (item in CartManager.cartItems) {
             total += (item.price * item.qty)
         }
         tvTotal.text = "Total : Rp. $total"
 
-        // Visibility Notes khusus "Buket Uang"
         val adaBuketUang = CartManager.cartItems.any {
             it.name.contains("Buket Uang", ignoreCase = true)
         }
@@ -146,6 +143,7 @@ class KeranjangActivity : AppCompatActivity() {
         }
     }
 
+    // --- LOGIKA PEMBAYARAN DIPERBARUI ---
     private fun prosesPembayaran(metode: String) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.pembayaran, null)
         val dialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(false).create()
@@ -155,6 +153,18 @@ class KeranjangActivity : AppCompatActivity() {
         val layoutVa = dialogView.findViewById<LinearLayout>(R.id.layoutVa)
         val tvVaNumber = dialogView.findViewById<TextView>(R.id.tvVaNumber)
 
+        // 1. Buat Nomor VA Simulasi (Acak)
+        val nomorVaSimulasi = when (metode) {
+            "BCA" -> "6289" + (10000000..99999999).random().toString()
+            "MANDIRI" -> "1370" + (10000000..99999999).random().toString()
+            "QRIS" -> "QRIS"
+            else -> "" // Tunai
+        }
+
+        // 2. Tentukan Status Berdasarkan Metode
+        val statusPesanan = if (metode == "TUNAI") "Lunas" else "Menunggu Pembayaran"
+
+        // 3. Tampilkan Tampilan Dialog Sesuai Metode
         when (metode) {
             "QRIS" -> {
                 imgPayment.setImageResource(R.drawable.qr_code)
@@ -164,7 +174,7 @@ class KeranjangActivity : AppCompatActivity() {
             "BCA", "MANDIRI" -> {
                 imgPayment.visibility = View.GONE
                 layoutVa.visibility = View.VISIBLE
-                tvVaNumber.text = if (metode == "BCA") "6289 7262 9198 55" else "1370 0123 4567 89"
+                tvVaNumber.text = nomorVaSimulasi
             }
             "TUNAI" -> {
                 imgPayment.setImageResource(R.drawable.done)
@@ -175,49 +185,51 @@ class KeranjangActivity : AppCompatActivity() {
 
         dialog.show()
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (metode != "TUNAI") {
-                layoutVa.visibility = View.GONE
-                imgPayment.visibility = View.VISIBLE
-                imgPayment.setImageResource(R.drawable.done)
-            }
+        // 4. Langsung simpan ke Firebase di belakang layar (Background)
+        simpanPesananKeFirebase(metode, statusPesanan, nomorVaSimulasi)
 
+        // 5. Tutup dialog dan selesaikan Checkout
+        if (metode == "TUNAI") {
+            // Jika Tunai, tunggu 2 detik (animasi centang) lalu kembali ke beranda
             Handler(Looper.getMainLooper()).postDelayed({
-                // Memanggil fungsi simpan ke Firebase setelah animasi selesai
-                simpanPesananKeFirebase(metode, dialog)
+                dialog.dismiss()
+                selesaikanCheckout("Pesanan Lunas!")
             }, 2000)
-        }, 3000)
+        } else {
+            // Jika Non-Tunai, biarkan kasir melihat VA selama 4 detik, lalu kembali ke beranda
+            Handler(Looper.getMainLooper()).postDelayed({
+                dialog.dismiss()
+                selesaikanCheckout("Pesanan masuk antrean pembayaran!")
+            }, 4000)
+        }
     }
 
-    // --- FUNGSI BARU UNTUK MENYIMPAN KE FIREBASE ---
-    private fun simpanPesananKeFirebase(metode: String, dialog: AlertDialog) {
+    // --- FUNGSI SIMPAN FIREBASE DIPERBARUI ---
+    private fun simpanPesananKeFirebase(metode: String, status: String, nomorVa: String) {
         val db = FirebaseFirestore.getInstance()
 
-        // 1. Hitung total harga
         var totalBelanja = 0
         for (item in CartManager.cartItems) {
             totalBelanja += (item.price * item.qty)
         }
 
-        // 2. Siapkan data master pesanan
+        // Simpan 'status' dan 'nomor_va'
         val pesananData = hashMapOf(
             "metode_pembayaran" to metode,
-            "status_pembayaran" to "Lunas",
+            "status" to status,
+            "nomor_va" to nomorVa,
             "total_harga" to totalBelanja,
-            "tanggal_pesanan" to Timestamp.now(), // Menggunakan waktu dari server
+            "tanggal_pesanan" to Timestamp.now(),
             "catatan" to etNotes.text.toString()
         )
 
-        // 3. Simpan data ke koleksi 'pesanan'
         db.collection("pesanan").add(pesananData)
             .addOnSuccessListener { documentRef ->
-                // Mendapatkan ID Document pesanan yang baru dibuat
                 val idPesananBaru = documentRef.id
 
-                // 4. Simpan setiap item di keranjang ke koleksi 'detail_pesanan'
                 for (item in CartManager.cartItems) {
                     val detailData = hashMapOf(
-                        "id_pesanan" to idPesananBaru, // Foreign key ke tabel pesanan
+                        "id_pesanan" to idPesananBaru,
                         "nama_produk" to item.name,
                         "jumlah" to item.qty,
                         "harga_satuan" to item.price,
@@ -225,21 +237,21 @@ class KeranjangActivity : AppCompatActivity() {
                     )
                     db.collection("detail_pesanan").add(detailData)
                 }
-
-                // 5. Tutup dialog, bersihkan keranjang, dan pindah ke Beranda
-                dialog.dismiss()
-                Toast.makeText(this, "Pesanan Berhasil Disimpan!", Toast.LENGTH_SHORT).show()
-                CartManager.cartItems.clear()
-
-                val intent = Intent(this, MainActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                finish()
             }
             .addOnFailureListener { e ->
-                dialog.dismiss()
-                Toast.makeText(this, "Gagal membuat pesanan: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Gagal menyimpan pesanan: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    // Fungsi tambahan untuk membersihkan keranjang dan pindah halaman
+    private fun selesaikanCheckout(pesan: String) {
+        Toast.makeText(this, pesan, Toast.LENGTH_SHORT).show()
+        CartManager.cartItems.clear()
+
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     private fun setupSidebar() {
