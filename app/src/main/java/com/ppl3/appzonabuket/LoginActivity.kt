@@ -1,5 +1,6 @@
 package com.ppl3.appzonabuket
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -41,6 +42,21 @@ class LoginActivity : AppCompatActivity() {
                 auth.signInWithEmailAndPassword(dummyEmail, password)
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
+
+                            // --- TAMBAHAN LOGIKA PENYIMPANAN ROLE (SESI) ---
+                            val sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
+                            val editor = sharedPref.edit()
+
+                            // Cek siapa yang login.
+                            // Ubah "owner" di bawah ini sesuai dengan nama akun bos/owner kamu di Firebase.
+                            if (nama.equals("owner", ignoreCase = true)) {
+                                editor.putString("role", "owner")
+                            } else {
+                                editor.putString("role", "admin")
+                            }
+                            editor.apply()
+                            // -----------------------------------------------
+
                             // Login sukses!
                             Toast.makeText(this, "Selamat Datang, $nama!", Toast.LENGTH_SHORT).show()
                             val intent = Intent(this, MainActivity::class.java)

@@ -109,6 +109,7 @@ class KeranjangActivity : AppCompatActivity() {
         }
     }
 
+    // --- FUNGSI YANG DIPERBARUI: Notes selalu tampil ---
     private fun updateTampilanKeranjang() {
         var total = 0
         for (item in CartManager.cartItems) {
@@ -116,18 +117,9 @@ class KeranjangActivity : AppCompatActivity() {
         }
         tvTotal.text = "Total : Rp. $total"
 
-        val adaBuketUang = CartManager.cartItems.any {
-            it.name.contains("Buket Uang", ignoreCase = true)
-        }
-
-        if (adaBuketUang) {
-            tvLabelNotes.visibility = View.VISIBLE
-            etNotes.visibility = View.VISIBLE
-        } else {
-            tvLabelNotes.visibility = View.GONE
-            etNotes.visibility = View.GONE
-            etNotes.text.clear()
-        }
+        // Label dan kolom input Notes selalu dimunculkan untuk semua produk
+        tvLabelNotes.visibility = View.VISIBLE
+        etNotes.visibility = View.VISIBLE
     }
 
     private fun updateWarnaSeleksi(selected: MaterialCardView, allCards: List<MaterialCardView>) {
@@ -143,7 +135,6 @@ class KeranjangActivity : AppCompatActivity() {
         }
     }
 
-    // --- LOGIKA PEMBAYARAN DIPERBARUI ---
     private fun prosesPembayaran(metode: String) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.pembayaran, null)
         val dialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(false).create()
@@ -190,13 +181,11 @@ class KeranjangActivity : AppCompatActivity() {
 
         // 5. Tutup dialog dan selesaikan Checkout
         if (metode == "TUNAI") {
-            // Jika Tunai, tunggu 2 detik (animasi centang) lalu kembali ke beranda
             Handler(Looper.getMainLooper()).postDelayed({
                 dialog.dismiss()
                 selesaikanCheckout("Pesanan Lunas!")
             }, 2000)
         } else {
-            // Jika Non-Tunai, biarkan kasir melihat VA selama 4 detik, lalu kembali ke beranda
             Handler(Looper.getMainLooper()).postDelayed({
                 dialog.dismiss()
                 selesaikanCheckout("Pesanan masuk antrean pembayaran!")
@@ -204,7 +193,6 @@ class KeranjangActivity : AppCompatActivity() {
         }
     }
 
-    // --- FUNGSI SIMPAN FIREBASE DIPERBARUI ---
     private fun simpanPesananKeFirebase(metode: String, status: String, nomorVa: String) {
         val db = FirebaseFirestore.getInstance()
 
@@ -220,7 +208,7 @@ class KeranjangActivity : AppCompatActivity() {
             "nomor_va" to nomorVa,
             "total_harga" to totalBelanja,
             "tanggal_pesanan" to Timestamp.now(),
-            "catatan" to etNotes.text.toString()
+            "catatan" to etNotes.text.toString() // Ini akan menyimpan apapun yang diketik kasir
         )
 
         db.collection("pesanan").add(pesananData)
@@ -243,7 +231,6 @@ class KeranjangActivity : AppCompatActivity() {
             }
     }
 
-    // Fungsi tambahan untuk membersihkan keranjang dan pindah halaman
     private fun selesaikanCheckout(pesan: String) {
         Toast.makeText(this, pesan, Toast.LENGTH_SHORT).show()
         CartManager.cartItems.clear()

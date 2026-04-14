@@ -53,7 +53,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="Konfirmasi Lunas"
-            app:backgroundTint="#3BE000"
+            app:backgroundTint="#8496FF"
             android:textColor="#FFFFFF"
             app:cornerRadius="8dp"/>
 
