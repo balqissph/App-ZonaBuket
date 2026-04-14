@@ -11,15 +11,22 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import java.text.SimpleDateFormat
+import java.util.Locale
+
 class LaporanActivity : AppCompatActivity() {
 
     lateinit var drawerLayout: DrawerLayout
+
+    private lateinit var adapter: LaporanAdapter
+    private val laporanList = mutableListOf<Laporan>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,66 +43,13 @@ class LaporanActivity : AppCompatActivity() {
             finish()
         }
 
-        // --- RECYCLERVIEW LAPORAN ---
         recyclerLaporan.layoutManager = LinearLayoutManager(this)
 
-        val laporanList = listOf(
-            Laporan(
-                "11:05 / 4-5-2025",
-                "Buket Bunga Satin Biru Hitam",
-                "warna biru tua",
-                "Rp.150.000",
-                2,
-                "Rp.300.000",
-                "Qris",
-                "Admin 1"
-            ),
-            Laporan(
-                "15:33 / 11-5-2025",
-                "Buket Uang Putih",
-                null,
-                "Rp.2.000.000",
-                2,
-                "Rp.4.000.000",
-                "Transfer BCA",
-                "Admin 2"
-            ),
-            Laporan(
-                "20:55 / 11-5-2025",
-                "Buket Bunga Satin Putih",
-                "pakai pita emas",
-                "Rp.100.000",
-                1,
-                "Rp.100.000",
-                "Cash",
-                "Admin 1"
-            ),
-            Laporan(
-                "08:24 / 13-5-2025",
-                "Buket Wisuda + Boneka",
-                null,
-                "Rp.200.000",
-                7,
-                "Rp.1.400.000",
-                "Cash",
-                "Admin 3"
-            ),
-            Laporan(
-                "09:05 / 13-5-2025",
-                "Buket Pink Gold",
-                "untuk ulang tahun",
-                "Rp.85.000",
-                2,
-                "Rp.170.000",
-                "Transfer Mandiri",
-                "Admin 1"
-            )
-        )
-
-        val adapter = LaporanAdapter(laporanList)
+        adapter = LaporanAdapter(laporanList)
         recyclerLaporan.adapter = adapter
 
-        // --- TOMBOL SIMPAN PDF ---
+        ambilDataDariFirebase()
+
         btnSavePDF.setOnClickListener {
             Toast.makeText(
                 this,
@@ -105,9 +59,76 @@ class LaporanActivity : AppCompatActivity() {
         }
     }
 
-    // --- FUNGSI UNTUK MENAMPILKAN POPUP PIN ---
-    private fun showPinDialog(targetActivity: Class<*>) {
+    // --- FUNGSI YANG DIPERBARUI: GABUNGKAN ITEM BERDASARKAN ID PESANAN ---
+    private fun ambilDataDariFirebase() {
+        val db = FirebaseFirestore.getInstance()
 
+        // Ambil data struk (pesanan) urut dari yang terbaru
+        db.collection("pesanan")
+            .orderBy("tanggal_pesanan", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { resultPesanan ->
+                laporanList.clear()
+
+                for (docPesanan in resultPesanan) {
+                    val idPesanan = docPesanan.id
+
+                    val date = docPesanan.getTimestamp("tanggal_pesanan")?.toDate()
+                    val format = SimpleDateFormat("HH:mm / d-M-yyyy", Locale.getDefault())
+                    val timestampStr = date?.let { format.format(it) } ?: "-"
+
+                    val pembayaran = docPesanan.getString("metode_pembayaran") ?: "-"
+                    val notes = docPesanan.getString("catatan") ?: ""
+                    val totalHargaStruk = docPesanan.getLong("total_harga") ?: 0
+
+                    val notesFinal = if (notes.isBlank()) null else notes
+
+                    // Ambil detail produk berdasarkan ID Pesanan tersebut
+                    db.collection("detail_pesanan")
+                        .whereEqualTo("id_pesanan", idPesanan)
+                        .get()
+                        .addOnSuccessListener { resultDetail ->
+
+                            // Siapkan list kosong untuk menampung gabungan teks
+                            val listNama = mutableListOf<String>()
+                            val listHarga = mutableListOf<String>()
+                            val listJumlah = mutableListOf<String>()
+
+                            for (docDetail in resultDetail) {
+                                val namaProduk = docDetail.getString("nama_produk") ?: "-"
+                                val hargaSatuan = docDetail.getLong("harga_satuan") ?: 0
+                                val jumlah = docDetail.getLong("jumlah") ?: 0
+
+                                // Masukkan ke dalam list penampung
+                                listNama.add(namaProduk)
+                                listHarga.add("Rp.$hargaSatuan")
+                                listJumlah.add(jumlah.toString()) // Jadikan string agar bisa digabung
+                            }
+
+                            // Masukkan ke Data Class Laporan
+                            val laporanItem = Laporan(
+                                idPesanan = "ID: ${idPesanan.take(8)}", // Ambil 8 karakter depan ID Pesanan
+                                timestamp = timestampStr,
+                                namaProduk = listNama.joinToString("\n"), // Gabung ke bawah pakai enter (\n)
+                                notes = notesFinal,
+                                harga = listHarga.joinToString("\n"),     // Gabung ke bawah pakai enter (\n)
+                                jumlah = listJumlah.joinToString("\n"),   // Gabung ke bawah pakai enter (\n)
+                                total = "Rp.$totalHargaStruk",            // Menampilkan Total Akhir (keseluruhan)
+                                pembayaran = pembayaran,
+                                admin = "Admin 1"
+                            )
+
+                            laporanList.add(laporanItem)
+                            adapter.notifyDataSetChanged()
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Gagal mengambil laporan: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun showPinDialog(targetActivity: Class<*>) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.popup_pin, null)
         val tvPinIndicator = dialogView.findViewById<TextView>(R.id.tvPinIndicator)
         val btnDelete = dialogView.findViewById<ImageButton>(R.id.btnDelete)
@@ -128,41 +149,22 @@ class LaporanActivity : AppCompatActivity() {
 
         for (id in numberButtons) {
             dialogView.findViewById<TextView>(id).setOnClickListener { view ->
-
                 if (enteredPin.length < 6) {
-
                     val number = (view as TextView).text.toString()
                     enteredPin += number
-
                     tvPinIndicator.text = "●".repeat(enteredPin.length)
 
                     if (enteredPin.length == 6) {
-
                         Handler(Looper.getMainLooper()).postDelayed({
-
                             if (enteredPin == correctPin) {
-
-                                Toast.makeText(
-                                    this,
-                                    "Akses Diberikan",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-
+                                Toast.makeText(this, "Akses Diberikan", Toast.LENGTH_SHORT).show()
                                 dialog.dismiss()
                                 startActivity(Intent(this, targetActivity))
-
                             } else {
-
-                                Toast.makeText(
-                                    this,
-                                    "PIN Salah!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-
+                                Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
                                 enteredPin = ""
                                 tvPinIndicator.text = ""
                             }
-
                         }, 200)
                     }
                 }
@@ -170,9 +172,7 @@ class LaporanActivity : AppCompatActivity() {
         }
 
         btnDelete.setOnClickListener {
-
             if (enteredPin.isNotEmpty()) {
-
                 enteredPin = enteredPin.dropLast(1)
                 tvPinIndicator.text = "●".repeat(enteredPin.length)
             }
