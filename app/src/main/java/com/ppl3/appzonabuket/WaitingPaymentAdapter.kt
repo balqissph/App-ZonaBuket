@@ -7,9 +7,8 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-// Data Class khusus untuk halaman Antrean
 data class WaitingPayment(
-    val idDokumen: String,
+    val idDokumen: String, // Pastikan ini adalah Order ID (misal: ZONA-12345) yang dikirim ke Midtrans
     val waktu: String,
     val metode: String,
     val noVa: String,
@@ -18,7 +17,8 @@ data class WaitingPayment(
 
 class WaitingPaymentAdapter(
     private val list: List<WaitingPayment>,
-    private val onLunasKlik: (String) -> Unit // Fungsi callback ketika tombol diklik
+    // 1. Ubah nama dari onLunasKlik menjadi onCekStatusKlik agar lebih sesuai fungsinya
+    private val onCekStatusKlik: (String) -> Unit
 ) : RecyclerView.Adapter<WaitingPaymentAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -26,7 +26,8 @@ class WaitingPaymentAdapter(
         val tvWaktu: TextView = itemView.findViewById(R.id.tvWpWaktu)
         val tvMetodeVa: TextView = itemView.findViewById(R.id.tvWpMetodeVa)
         val tvTotal: TextView = itemView.findViewById(R.id.tvWpTotal)
-        val btnLunas: Button = itemView.findViewById(R.id.btnKonfirmasiLunas)
+        // 2. ID tombol tetap sama (asumsi di XML kamu belum diubah)
+        val btnCekStatus: Button = itemView.findViewById(R.id.btnKonfirmasiLunas)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -43,9 +44,19 @@ class WaitingPaymentAdapter(
         holder.tvMetodeVa.text = "${pesanan.metode} - VA: ${pesanan.noVa}"
         holder.tvTotal.text = "Total: Rp.${pesanan.total}"
 
-        // Aksi ketika tombol Lunas diklik
-        holder.btnLunas.setOnClickListener {
-            onLunasKlik(pesanan.idDokumen)
+        // 3. Saat diklik, panggil fungsi untuk mengecek status
+        holder.btnCekStatus.setOnClickListener {
+            // Kita juga bisa ubah teks tombolnya sementara saat diklik agar ada efek loading
+            holder.btnCekStatus.text = "Mengecek..."
+            holder.btnCekStatus.isEnabled = false
+
+            onCekStatusKlik(pesanan.idDokumen)
+
+            // Kembalikan tombol seperti semula setelah 2 detik
+            holder.btnCekStatus.postDelayed({
+                holder.btnCekStatus.text = "Cek Status"
+                holder.btnCekStatus.isEnabled = true
+            }, 2000)
         }
     }
 

@@ -56,9 +56,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
     implementation("com.google.firebase:firebase-analytics")
 
-    // ====================================================
     // TAMBAHAN LIBRARY FIREBASE AUTH DAN FIRESTORE
-    // ====================================================
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
 
@@ -67,4 +65,8 @@ dependencies {
 
     // Midtrans UI Kit (Pastikan selalu cek versi terbaru di dokumentasi resmi)
     implementation("com.midtrans:uikit:2.0.0-SANDBOX")
+
+    // Retrofit & Gson
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }

@@ -24,6 +24,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import com.ppl3.appzonabuket.api.ApiClient
+import com.ppl3.appzonabuket.api.CheckoutRequest
+import com.ppl3.appzonabuket.api.CheckoutResponse
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 // Tambahan Import Firebase
 import com.google.firebase.firestore.FirebaseFirestore
@@ -103,13 +109,45 @@ class KeranjangActivity : AppCompatActivity() {
                 Toast.makeText(this, "Pilih metode pembayaran dulu!", Toast.LENGTH_SHORT).show()
             } else {
                 if (metodeTerpilih == "TUNAI") {
-                    // Jika Tunai, pakai logika simulasi aslimu
                     prosesPembayaran(metodeTerpilih!!)
                 } else {
-                    // --- TAMBAHAN MIDTRANS: Jika Digital, Panggil Midtrans ---
-                    // Ganti nilai ini nanti dengan Token asli yang didapat dari Backend/Postman
-                    val dummySnapToken = "9308a757-9bd5-42eb-bf6d-8aeee7d3cd11"
-                    mulaiPembayaranMidtrans(dummySnapToken)
+                    // --- MINTA TOKEN KE LARAVEL MENGGUNAKAN RETROFIT ---
+                    Toast.makeText(this, "Menghubungi server...", Toast.LENGTH_SHORT).show()
+
+                    // Hitung total belanja saat ini
+                    var totalBelanja = 0
+                    for (item in CartManager.cartItems) {
+                        totalBelanja += (item.price * item.qty)
+                    }
+
+                    // Siapkan data yang mau dikirim
+                    val requestData = CheckoutRequest(totalBelanja)
+
+                    // Panggil API
+                    ApiClient.instance.getSnapToken(requestData).enqueue(object : Callback<CheckoutResponse> {
+                        override fun onResponse(call: Call<CheckoutResponse>, response: Response<CheckoutResponse>) {
+                            if (response.isSuccessful) {
+                                val snapToken = response.body()?.snapToken
+
+                                if (snapToken != null) {
+                                    // Token sukses didapat, langsung buka UI Midtrans!
+                                    mulaiPembayaranMidtrans(snapToken)
+                                } else {
+                                    Toast.makeText(this@KeranjangActivity, "Error: Token kosong", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                // Tangkap pesan error asli dari Laravel
+                                val errorCode = response.code()
+                                val errorMessage = response.errorBody()?.string()
+
+                                Toast.makeText(this@KeranjangActivity, "Error $errorCode: $errorMessage", Toast.LENGTH_LONG).show()
+                            }
+                        }
+
+                        override fun onFailure(call: Call<CheckoutResponse>, t: Throwable) {
+                            Toast.makeText(this@KeranjangActivity, "Koneksi gagal: ${t.message}", Toast.LENGTH_LONG).show()
+                        }
+                    })
                 }
             }
         }
@@ -133,7 +171,7 @@ class KeranjangActivity : AppCompatActivity() {
             .setTransactionFinishedCallback { result ->
                 handleHasilPembayaranMidtrans(result)
             }
-            .setMerchantBaseUrl("https://namabackendkamu.com/api/") // Biarkan atau ganti URL backend
+            .setMerchantBaseUrl("http://10.70.3.178/api/") // URL backend
             .enableLog(true)
             .buildSDK()
     }
@@ -294,7 +332,7 @@ class KeranjangActivity : AppCompatActivity() {
         Toast.makeText(this, pesan, Toast.LENGTH_SHORT).show()
         CartManager.cartItems.clear()
 
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, SuccessActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
