@@ -55,7 +55,6 @@ class LoginActivity : AppCompatActivity() {
                                 editor.putString("role", "admin")
                             }
                             editor.apply()
-                            // -----------------------------------------------
 
                             // Login sukses!
                             Toast.makeText(this, "Selamat Datang, $nama!", Toast.LENGTH_SHORT).show()

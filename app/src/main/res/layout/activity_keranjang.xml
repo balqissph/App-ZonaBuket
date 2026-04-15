@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawerLayoutKeranjang"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_zona"
@@ -68,8 +68,9 @@
 
             <TextView
                 android:id="@+id/tabRekomendasi"
-                android:layout_width="208dp"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:gravity="center"
                 android:text="REKOMENDASI"
                 android:textColor="#2F2F2F"
@@ -78,8 +79,9 @@
 
             <TextView
                 android:id="@+id/tabKatalog"
-                android:layout_width="172dp"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:gravity="center"
                 android:text="KATALOG"
                 android:textColor="#2F2F2F"
@@ -126,24 +128,26 @@
                         android:text="Detail Pesanan &amp; Notes"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:layout_marginBottom="8dp"
-                        android:visibility="gone"/> <EditText
-                    android:id="@+id/etNotes"
-                    android:layout_width="match_parent"
-                    android:layout_height="80dp"
-                    android:background="@drawable/bg_tab"
-                    android:gravity="top"
-                    android:hint="Contoh: Nama di selempang, warna pita, dll"
-                    android:padding="10dp"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="20dp"
-                    android:visibility="gone"/> <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Metode Pembayaran"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="10dp"/>
+                        android:layout_marginBottom="8dp"/>
+
+                    <EditText
+                        android:id="@+id/etNotes"
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:background="@drawable/bg_tab"
+                        android:gravity="top"
+                        android:hint="Contoh: Nama di selempang, warna pita, dll"
+                        android:padding="10dp"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="20dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Metode Pembayaran"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="10dp"/>
 
                     <GridLayout
                         android:layout_width="match_parent"
@@ -153,61 +157,45 @@
                         android:useDefaultMargins="true">
 
                         <com.google.android.material.card.MaterialCardView
-                            android:id="@+id/btnBca"
-                            android:layout_width="130dp"
-                            android:layout_height="80dp"
+                            android:id="@+id/btnTunai"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
                             app:cardCornerRadius="12dp"
                             app:cardBackgroundColor="#F4F4F4"
                             app:strokeWidth="1dp"
-                            app:strokeColor="#E0E0E0">
-                            <ImageView
+                            app:strokeColor="#E0E0E0"
+                            android:clickable="true"
+                            android:focusable="true">
+                            <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:src="@drawable/bca"
-                                android:padding="12dp"
-                                android:scaleType="fitCenter"/>
+                                android:text="Tunai"
+                                android:gravity="center"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="#555555"/>
                         </com.google.android.material.card.MaterialCardView>
 
                         <com.google.android.material.card.MaterialCardView
-                            android:id="@+id/btnMandiri"
-                            android:layout_width="130dp"
-                            android:layout_height="80dp"
+                            android:id="@+id/btnNonTunai"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
                             app:cardCornerRadius="12dp"
-                            app:cardBackgroundColor="#F4F4F4">
-                            <ImageView
+                            app:cardBackgroundColor="#F4F4F4"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="#E0E0E0"
+                            android:clickable="true"
+                            android:focusable="true">
+                            <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:src="@drawable/mandiri"
-                                android:padding="12dp"
-                                android:scaleType="fitCenter"/>
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:id="@+id/btnQris"
-                            android:layout_width="130dp"
-                            android:layout_height="80dp"
-                            app:cardCornerRadius="12dp"
-                            app:cardBackgroundColor="#F4F4F4">
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:src="@drawable/qris"
-                                android:padding="12dp"
-                                android:scaleType="fitCenter"/>
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:id="@+id/btnTunai"
-                            android:layout_width="130dp"
-                            android:layout_height="80dp"
-                            app:cardCornerRadius="12dp"
-                            app:cardBackgroundColor="#F4F4F4">
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:src="@drawable/cash"
-                                android:padding="12dp"
-                                android:scaleType="fitCenter"/>
+                                android:text="Non-Tunai"
+                                android:gravity="center"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="#555555"/>
                         </com.google.android.material.card.MaterialCardView>
                     </GridLayout>
 
@@ -268,18 +256,8 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="16dp">
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/profile" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:text="Profile"
-                    android:textColor="#555555"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/profile" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="24dp" android:text="Profile" android:textColor="#555555" android:textSize="16sp" android:textStyle="bold" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" />
@@ -292,18 +270,8 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="16dp">
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/laporan_penjualan" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:text="Laporan Penjualan"
-                    android:textColor="#555555"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/laporan_penjualan" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="24dp" android:text="Laporan Penjualan" android:textColor="#555555" android:textSize="16sp" android:textStyle="bold" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" />
@@ -316,18 +284,36 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="16dp">
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/manajemen_produk" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:text="Manajemen Produk"
-                    android:textColor="#555555"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/manajemen_produk" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="24dp" android:text="Manajemen Produk" android:textColor="#555555" android:textSize="16sp" android:textStyle="bold" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" />
+
+            <LinearLayout
+                android:id="@+id/menuWaitingPayment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/waitingpayment" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="24dp" android:text="Waiting Payment" android:textColor="#555555" android:textSize="16sp" android:textStyle="bold" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" />
+
+            <LinearLayout
+                android:id="@+id/menuManajemenAdmin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+                <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/manajemen_admin" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="24dp" android:text="Manajemen Admin" android:textColor="#555555" android:textSize="16sp" android:textStyle="bold" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" />
