@@ -29,6 +29,12 @@ import com.google.android.material.card.MaterialCardView
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
 
+// Tambahan Import Midtrans
+import com.midtrans.sdk.corekit.callback.TransactionFinishedCallback
+import com.midtrans.sdk.corekit.core.MidtransSDK
+import com.midtrans.sdk.corekit.models.snap.TransactionResult
+import com.midtrans.sdk.uikit.SdkUIFlowBuilder
+
 class KeranjangActivity : AppCompatActivity() {
 
     private lateinit var recyclerCart: RecyclerView
@@ -56,6 +62,8 @@ class KeranjangActivity : AppCompatActivity() {
         val btnCheckout = findViewById<Button>(R.id.btnCheckout)
         val tabRekomendasi = findViewById<TextView>(R.id.tabRekomendasi)
         val tabKatalog = findViewById<TextView>(R.id.tabKatalog)
+
+        inisialisasiMidtrans()
 
         // 2. Setup Sidebar
         setupSidebar()
@@ -94,7 +102,15 @@ class KeranjangActivity : AppCompatActivity() {
             } else if (metodeTerpilih == null) {
                 Toast.makeText(this, "Pilih metode pembayaran dulu!", Toast.LENGTH_SHORT).show()
             } else {
-                prosesPembayaran(metodeTerpilih!!)
+                if (metodeTerpilih == "TUNAI") {
+                    // Jika Tunai, pakai logika simulasi aslimu
+                    prosesPembayaran(metodeTerpilih!!)
+                } else {
+                    // --- TAMBAHAN MIDTRANS: Jika Digital, Panggil Midtrans ---
+                    // Ganti nilai ini nanti dengan Token asli yang didapat dari Backend/Postman
+                    val dummySnapToken = "9308a757-9bd5-42eb-bf6d-8aeee7d3cd11"
+                    mulaiPembayaranMidtrans(dummySnapToken)
+                }
             }
         }
 
@@ -106,6 +122,49 @@ class KeranjangActivity : AppCompatActivity() {
         tabKatalog.setOnClickListener {
             startActivity(Intent(this, KatalogActivity::class.java))
             finish()
+        }
+    }
+
+    // --- TAMBAHAN MIDTRANS: Fungsi Inisialisasi SDK ---
+    private fun inisialisasiMidtrans() {
+        SdkUIFlowBuilder.init()
+            .setClientKey("Mid-client-u5kXP0SEXFv9L379") // Ganti dengan Client Key Sandbox
+            .setContext(this)
+            .setTransactionFinishedCallback { result ->
+                handleHasilPembayaranMidtrans(result)
+            }
+            .setMerchantBaseUrl("https://namabackendkamu.com/api/") // Biarkan atau ganti URL backend
+            .enableLog(true)
+            .buildSDK()
+    }
+
+    // --- TAMBAHAN MIDTRANS: Fungsi Menampilkan UI Midtrans ---
+    private fun mulaiPembayaranMidtrans(snapToken: String) {
+        MidtransSDK.getInstance().startPaymentUiFlow(this, snapToken)
+    }
+
+    // --- TAMBAHAN MIDTRANS: Callback Setelah Midtrans Ditutup ---
+    private fun handleHasilPembayaranMidtrans(result: TransactionResult) {
+        when (result.status) {
+            TransactionResult.STATUS_SUCCESS, TransactionResult.STATUS_PENDING -> {
+                // Pembayaran sukses atau menunggu transfer (VA)
+                val statusSimpan = if (result.status == TransactionResult.STATUS_SUCCESS) "Lunas" else "Menunggu Pembayaran"
+
+                Toast.makeText(this, "Pembayaran diproses!", Toast.LENGTH_SHORT).show()
+
+                // Panggil logika aslimu untuk simpan ke Firebase
+                simpanPesananKeFirebase(metodeTerpilih ?: "MIDTRANS", statusSimpan, "Via Midtrans")
+                selesaikanCheckout("Pesanan berhasil masuk sistem!")
+            }
+            TransactionResult.STATUS_FAILED -> {
+                Toast.makeText(this, "Pembayaran Gagal: ${result.response?.statusMessage}", Toast.LENGTH_LONG).show()
+            }
+            TransactionResult.STATUS_INVALID -> {
+                Toast.makeText(this, "Transaksi Invalid", Toast.LENGTH_LONG).show()
+            }
+            else -> {
+                Toast.makeText(this, "Pembayaran dibatalkan", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

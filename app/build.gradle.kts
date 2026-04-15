@@ -64,4 +64,7 @@ dependencies {
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.google.android.material:material:1.11.0")
+
+    // Midtrans UI Kit (Pastikan selalu cek versi terbaru di dokumentasi resmi)
+    implementation("com.midtrans:uikit:2.0.0-SANDBOX")
 }
