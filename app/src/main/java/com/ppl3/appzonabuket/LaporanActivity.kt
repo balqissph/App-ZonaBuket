@@ -28,12 +28,14 @@ class LaporanActivity : AppCompatActivity() {
     private lateinit var adapter: LaporanAdapter
     private val laporanList = mutableListOf<Laporan>()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_laporan)
 
         val recyclerLaporan = findViewById<RecyclerView>(R.id.recyclerLaporan)
         val btnSavePDF = findViewById<MaterialButton>(R.id.btnSavePDF)
+        laporanList.sortByDescending {it.timestamp}
 
         drawerLayout = findViewById(R.id.drawerLayout)
         val btnBack = findViewById<ImageView>(R.id.btnBack)
@@ -59,7 +61,7 @@ class LaporanActivity : AppCompatActivity() {
         }
     }
 
-    // --- FUNGSI DIPERBARUI: FILTER HANYA STATUS "Lunas" ---
+    // --- FILTER HANYA STATUS "Lunas" ---
     private fun ambilDataDariFirebase() {
         val db = FirebaseFirestore.getInstance()
 

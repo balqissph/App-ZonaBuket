@@ -10,5 +10,5 @@ data class Laporan(
     val total: String,
     val pembayaran: String,
     val admin: String,
-    val status: String // TAMBAHKAN INI: "Menunggu Pembayaran" atau "Lunas"
+    val status: String
 )

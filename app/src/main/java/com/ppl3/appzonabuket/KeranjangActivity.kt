@@ -53,13 +53,15 @@ class KeranjangActivity : AppCompatActivity() {
 
     private var metodeTerpilih: String? = null
 
+    // Variabel untuk mengingat ID pesanan yang sedang diproses
+    private var currentOrderId: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_keranjang)
 
-        // 1. Inisialisasi View
-        drawerLayout = findViewById(R.id.drawerLayout) // Sesuaikan ID di XML
+        drawerLayout = findViewById(R.id.drawerLayout)
         recyclerCart = findViewById(R.id.recyclerCart)
         tvTotal = findViewById(R.id.tvTotal)
         etNotes = findViewById(R.id.etNotes)
@@ -71,15 +73,12 @@ class KeranjangActivity : AppCompatActivity() {
         val tabKatalog = findViewById<TextView>(R.id.tabKatalog)
 
         inisialisasiMidtrans()
-
-        // 2. Setup Sidebar & Logika Role
         setupSidebar()
 
         btnMenu.setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
 
-        // 3. Setup RecyclerView & Adapter
         recyclerCart.layoutManager = LinearLayoutManager(this)
         adapter = CartAdapter(CartManager.cartItems) {
             updateTampilanKeranjang()
@@ -88,7 +87,6 @@ class KeranjangActivity : AppCompatActivity() {
 
         updateTampilanKeranjang()
 
-        // 4. Logika Pilih Metode Pembayaran (Update ID ke Tunai & Non-Tunai sesuai XML baru)
         val btnTunai = findViewById<MaterialCardView>(R.id.btnTunai)
         val btnNonTunai = findViewById<MaterialCardView>(R.id.btnNonTunai)
         val listMetode = listOf(btnTunai, btnNonTunai)
@@ -102,7 +100,6 @@ class KeranjangActivity : AppCompatActivity() {
             updateWarnaSeleksi(btnNonTunai, listMetode)
         }
 
-        // 5. Logika Checkout
         btnCheckout.setOnClickListener {
             if (CartManager.cartItems.isEmpty()) {
                 Toast.makeText(this, "Keranjang kosong!", Toast.LENGTH_SHORT).show()
@@ -112,35 +109,37 @@ class KeranjangActivity : AppCompatActivity() {
                 if (metodeTerpilih == "TUNAI") {
                     prosesPembayaran(metodeTerpilih!!)
                 } else {
-                    // --- MINTA TOKEN KE LARAVEL MENGGUNAKAN RETROFIT ---
                     Toast.makeText(this, "Menghubungi server...", Toast.LENGTH_SHORT).show()
 
-                    // Hitung total belanja saat ini
                     var totalBelanja = 0
                     for (item in CartManager.cartItems) {
                         totalBelanja += (item.price * item.qty)
                     }
 
-                    // Siapkan data yang mau dikirim
-                    val requestData = CheckoutRequest(totalBelanja)
+                    val db = FirebaseFirestore.getInstance()
+                    val pesananRef = db.collection("pesanan").document()
+                    val idFirebase = pesananRef.id
 
-                    // Panggil API
+                    // Ingat ID ini untuk di-update nanti setelah pembayaran Midtrans selesai
+                    currentOrderId = idFirebase
+
+                    val requestData = CheckoutRequest(totalBelanja, idFirebase)
+
                     ApiClient.instance.getSnapToken(requestData).enqueue(object : Callback<CheckoutResponse> {
                         override fun onResponse(call: Call<CheckoutResponse>, response: Response<CheckoutResponse>) {
                             if (response.isSuccessful) {
                                 val snapToken = response.body()?.snapToken
 
                                 if (snapToken != null) {
-                                    // Token sukses didapat, langsung buka UI Midtrans!
+                                    // Simpan pesanan awal sebagai "Menunggu Pembayaran"
+                                    simpanPesananKeFirebase(idFirebase, metodeTerpilih!!, "Menunggu Pembayaran", "Via Midtrans")
                                     mulaiPembayaranMidtrans(snapToken)
                                 } else {
                                     Toast.makeText(this@KeranjangActivity, "Error: Token kosong", Toast.LENGTH_SHORT).show()
                                 }
                             } else {
-                                // Tangkap pesan error asli dari Laravel
                                 val errorCode = response.code()
                                 val errorMessage = response.errorBody()?.string()
-
                                 Toast.makeText(this@KeranjangActivity, "Error $errorCode: $errorMessage", Toast.LENGTH_LONG).show()
                             }
                         }
@@ -153,7 +152,6 @@ class KeranjangActivity : AppCompatActivity() {
             }
         }
 
-        // 6. Navigasi Tab
         tabRekomendasi.setOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
@@ -165,7 +163,6 @@ class KeranjangActivity : AppCompatActivity() {
     }
 
     private fun setupSidebar() {
-        // Inisialisasi View Sidebar
         val menuProfile = findViewById<LinearLayout>(R.id.menuProfile)
         val menuLaporan = findViewById<LinearLayout>(R.id.menuLaporan)
         val menuManajemen = findViewById<LinearLayout>(R.id.menuManajemen)
@@ -173,7 +170,6 @@ class KeranjangActivity : AppCompatActivity() {
         val menuManajemenAdmin = findViewById<LinearLayout>(R.id.menuManajemenAdmin)
         val btnLogout = findViewById<MaterialButton>(R.id.btnLogout)
 
-        // Logika Role
         val sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
         val userRole = sharedPref.getString("role", "admin")
 
@@ -183,10 +179,8 @@ class KeranjangActivity : AppCompatActivity() {
             menuManajemenAdmin.visibility = View.GONE
         }
 
-        // Waiting payment selalu muncul untuk siapapun
         menuWaitingPayment.visibility = View.VISIBLE
 
-        // Click Listeners Sidebar
         menuProfile.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
             Handler(Looper.getMainLooper()).postDelayed({
@@ -232,13 +226,12 @@ class KeranjangActivity : AppCompatActivity() {
         }
     }
 
-    // --- MIDTRANS HELPERS ---
     private fun inisialisasiMidtrans() {
         SdkUIFlowBuilder.init()
             .setClientKey("Mid-client-u5kXP0SEXFv9L379")
             .setContext(this)
             .setTransactionFinishedCallback { result -> handleHasilPembayaranMidtrans(result) }
-            .setMerchantBaseUrl("http://10.70.1.244 :8000/api/")
+            .setMerchantBaseUrl("http://10.80.0.213:8000/api/")
             .enableLog(true)
             .buildSDK()
     }
@@ -252,7 +245,13 @@ class KeranjangActivity : AppCompatActivity() {
             TransactionResult.STATUS_SUCCESS, TransactionResult.STATUS_PENDING -> {
                 val statusSimpan = if (result.status == TransactionResult.STATUS_SUCCESS) "Lunas" else "Menunggu Pembayaran"
                 Toast.makeText(this, "Pembayaran diproses!", Toast.LENGTH_SHORT).show()
-                simpanPesananKeFirebase(metodeTerpilih ?: "NON-TUNAI", statusSimpan, "Via Midtrans")
+
+                // Hanya update status di Firestore, jangan buat data baru lagi
+                currentOrderId?.let { orderId ->
+                    FirebaseFirestore.getInstance().collection("pesanan").document(orderId)
+                        .update("status", statusSimpan)
+                }
+
                 selesaikanCheckout("Pesanan berhasil masuk sistem!")
             }
             TransactionResult.STATUS_FAILED -> Toast.makeText(this, "Pembayaran Gagal", Toast.LENGTH_SHORT).show()
@@ -278,7 +277,7 @@ class KeranjangActivity : AppCompatActivity() {
                 card.strokeWidth = 4
             } else {
                 card.setCardBackgroundColor(Color.parseColor("#F4F4F4"))
-                card.strokeWidth = 1 // strokeWidth 1 sesuai XML
+                card.strokeWidth = 1
                 card.setStrokeColor(Color.parseColor("#E0E0E0"))
             }
         }
@@ -296,7 +295,10 @@ class KeranjangActivity : AppCompatActivity() {
         imgPayment.visibility = View.VISIBLE
 
         dialog.show()
-        simpanPesananKeFirebase(metode, statusPesanan, "-")
+
+        // Buat ID untuk pesanan tunai lalu kirim ke fungsi simpanPesananKeFirebase
+        val idBaru = FirebaseFirestore.getInstance().collection("pesanan").document().id
+        simpanPesananKeFirebase(idBaru, metode, statusPesanan, "-")
 
         Handler(Looper.getMainLooper()).postDelayed({
             dialog.dismiss()
@@ -304,10 +306,13 @@ class KeranjangActivity : AppCompatActivity() {
         }, 2000)
     }
 
-    private fun simpanPesananKeFirebase(metode: String, status: String, nomorVa: String) {
+    private fun simpanPesananKeFirebase(idPesanan: String, metode: String, status: String, nomorVa: String) {
         val db = FirebaseFirestore.getInstance()
+
         var totalBelanja = 0
-        for (item in CartManager.cartItems) { totalBelanja += (item.price * item.qty) }
+        for (item in CartManager.cartItems) {
+            totalBelanja += (item.price * item.qty)
+        }
 
         val pesananData = hashMapOf(
             "metode_pembayaran" to metode,
@@ -318,17 +323,22 @@ class KeranjangActivity : AppCompatActivity() {
             "catatan" to etNotes.text.toString()
         )
 
-        db.collection("pesanan").add(pesananData).addOnSuccessListener { doc ->
-            for (item in CartManager.cartItems) {
-                val detail = hashMapOf(
-                    "id_pesanan" to doc.id,
-                    "nama_produk" to item.name,
-                    "jumlah" to item.qty,
-                    "harga_satuan" to item.price
-                )
-                db.collection("detail_pesanan").add(detail)
+        db.collection("pesanan").document(idPesanan).set(pesananData)
+            .addOnSuccessListener {
+                for (item in CartManager.cartItems) {
+                    val detailData = hashMapOf(
+                        "id_pesanan" to idPesanan,
+                        "nama_produk" to item.name,
+                        "jumlah" to item.qty,
+                        "harga_satuan" to item.price,
+                        "total_harga_item" to (item.price * item.qty)
+                    )
+                    db.collection("detail_pesanan").add(detailData)
+                }
             }
-        }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Gagal mencatat pesanan: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun selesaikanCheckout(pesan: String) {

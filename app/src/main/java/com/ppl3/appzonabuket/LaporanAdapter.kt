@@ -44,8 +44,6 @@ class LaporanAdapter(
         holder.tvTimestamp.text = laporan.timestamp
         holder.tvNamaProduk.text = laporan.namaProduk
         holder.tvHarga.text = laporan.harga
-
-        // --- HAPUS .toString() KARENA SEKARANG TIPENYA SUDAH STRING ---
         holder.tvJumlah.text = laporan.jumlah
 
         holder.tvTotal.text = laporan.total
