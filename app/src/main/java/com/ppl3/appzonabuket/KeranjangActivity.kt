@@ -231,7 +231,7 @@ class KeranjangActivity : AppCompatActivity() {
             .setClientKey("Mid-client-u5kXP0SEXFv9L379")
             .setContext(this)
             .setTransactionFinishedCallback { result -> handleHasilPembayaranMidtrans(result) }
-            .setMerchantBaseUrl("http://10.80.0.213:8000/api/")
+            .setMerchantBaseUrl("http://10.70.0.204:8000/api/")
             .enableLog(true)
             .buildSDK()
     }
@@ -356,7 +356,7 @@ class KeranjangActivity : AppCompatActivity() {
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         var enteredPin = ""
-        val correctPin = "123456"
+        val db = FirebaseFirestore.getInstance()
         val numberButtons = listOf(R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4, R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9)
 
         for (id in numberButtons) {
@@ -364,16 +364,27 @@ class KeranjangActivity : AppCompatActivity() {
                 if (enteredPin.length < 6) {
                     enteredPin += (view as TextView).text.toString()
                     tvPinIndicator.text = "●".repeat(enteredPin.length)
+
                     if (enteredPin.length == 6) {
                         Handler(Looper.getMainLooper()).postDelayed({
-                            if (enteredPin == correctPin) {
-                                dialog.dismiss()
-                                startActivity(Intent(this, targetActivity))
-                            } else {
-                                Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
-                                enteredPin = ""
-                                tvPinIndicator.text = ""
-                            }
+                            db.collection("setting").document("security").get()
+                                .addOnSuccessListener { document ->
+                                    val correctPin = document.getString("app-pin") ?: "123456"
+
+                                    if (enteredPin == correctPin) {
+                                        dialog.dismiss()
+                                        startActivity(Intent(this, targetActivity))
+                                    } else {
+                                        Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
+                                        enteredPin = ""
+                                        tvPinIndicator.text = ""
+                                    }
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(this, "Gagal mengecek PIN: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    enteredPin = ""
+                                    tvPinIndicator.text = ""
+                                }
                         }, 200)
                     }
                 }
