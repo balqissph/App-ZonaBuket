@@ -227,7 +227,7 @@ class KeranjangActivity : AppCompatActivity() {
             drawerLayout.closeDrawer(GravityCompat.START)
 
             ambilPinFirebase { pinGlobal ->
-                showPinDialog("Masukkan PIN Anda", pinGlobal) { _ ->
+                showPinDialog("Masukkan PIN Lama", pinGlobal) { _ ->
                     showPinDialog("Masukkan PIN Baru", null) {pinBaru ->
                         showPinDialog("Konfirmasi PIN Baru", pinBaru) { pinKonfirmasi ->
 
@@ -239,7 +239,7 @@ class KeranjangActivity : AppCompatActivity() {
                                     Toast.makeText(this, "PIN berhasil diubah!", Toast.LENGTH_LONG).show()
                                 }
                                 .addOnFailureListener {
-                                    Toast.makeText(this, "PIN gagal diubah", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this, "Gagal mengubah PIN.", Toast.LENGTH_SHORT).show()
                                 }
                         }
                     }
@@ -271,7 +271,7 @@ class KeranjangActivity : AppCompatActivity() {
                 onSuccess(pin)
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Gagal menghubungi server!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Gagal menghubungi server", Toast.LENGTH_SHORT).show()
             }
     }
 

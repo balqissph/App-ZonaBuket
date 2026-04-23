@@ -162,7 +162,7 @@ class MainActivity : AppCompatActivity() {
 
                             db.collection("settings").document("security").set(dataPin)
                                 .addOnSuccessListener {
-                                    Toast.makeText(this, "PIN berhasil diubah untuk semua perangkat!", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(this, "PIN berhasil diubah!", Toast.LENGTH_LONG).show()
                                 }
                                 .addOnFailureListener {
                                     Toast.makeText(this, "Gagal mengubah PIN.", Toast.LENGTH_SHORT).show()
@@ -198,7 +198,7 @@ class MainActivity : AppCompatActivity() {
                 onSuccess(pin)
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Gagal menghubungi server untuk cek PIN", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Gagal menghubungi server", Toast.LENGTH_SHORT).show()
             }
     }
 
