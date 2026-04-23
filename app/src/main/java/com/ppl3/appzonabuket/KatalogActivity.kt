@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
@@ -44,7 +43,40 @@ class KatalogActivity : AppCompatActivity() {
         val btnMenu = findViewById<ImageView>(R.id.btnMenu)
         drawerLayout = findViewById(R.id.drawerLayout)
 
-        // 2. Inisialisasi Menu Sidebar (Menggunakan VAL)
+        // 2. Setup Sidebar
+        setupSidebar()
+
+        // 3. Setup Klik Navigasi Sidebar
+        btnMenu.setOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
+
+        // 4. Setup RecyclerView & Firestore
+        recyclerKatalog.layoutManager = GridLayoutManager(this, 4)
+        adapter = ProductAdapter(productList)
+        recyclerKatalog.adapter = adapter
+        db = FirebaseFirestore.getInstance()
+        fetchDataFromFirestore()
+
+        // 5. Navigasi Antar Tab
+        tabRekomendasi.setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }
+
+        btnCart.setOnClickListener {
+            startActivity(Intent(this, KeranjangActivity::class.java))
+        }
+
+        // 6. Handle Window Insets
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainKatalog)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+    }
+
+    private fun setupSidebar() {
         val menuProfile = findViewById<LinearLayout>(R.id.menuProfile)
         val menuLaporan = findViewById<LinearLayout>(R.id.menuLaporan)
         val menuManajemen = findViewById<LinearLayout>(R.id.menuManajemen)
@@ -53,10 +85,8 @@ class KatalogActivity : AppCompatActivity() {
         val menuResetPin = findViewById<LinearLayout>(R.id.menuResetPin)
         val btnLogout = findViewById<MaterialButton>(R.id.btnLogout)
 
-        // 3. Logika Role & Visibilitas Menu
         val sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
         val userRole = sharedPref.getString("role", "admin")
-        val savedPin = sharedPref.getString("user_pin", "123456")
 
         // Menu yang KHUSUS untuk Owner
         if (userRole == "owner") {
@@ -67,13 +97,8 @@ class KatalogActivity : AppCompatActivity() {
             menuResetPin.visibility = View.GONE
         }
 
-        // Menu yang BEBAS (Siapapun bisa lihat, ditaruh di luar IF)
+        // Menu yang BEBAS
         menuWaitingPayment.visibility = View.VISIBLE
-
-        // 4. Setup Klik Navigasi Sidebar
-        btnMenu.setOnClickListener {
-            drawerLayout.openDrawer(GravityCompat.START)
-        }
 
         menuProfile.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
@@ -84,20 +109,20 @@ class KatalogActivity : AppCompatActivity() {
 
         menuLaporan.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            Handler(Looper.getMainLooper()).postDelayed({
-                showPinDialog("Masukan PIN Anda", savedPin) {
+            ambilPinFirebase { pinGlobal ->
+                showPinDialog("Masukan PIN Anda", pinGlobal) {
                     startActivity(Intent(this, LaporanActivity::class.java))
                 }
-            }, 250)
+            }
         }
 
         menuManajemen.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            Handler(Looper.getMainLooper()).postDelayed({
-                showPinDialog("Masukan PIN Anda", savedPin) {
+            ambilPinFirebase { pinGlobal ->
+                showPinDialog("Masukan PIN Anda", pinGlobal) {
                     startActivity(Intent(this, ProdukActivity::class.java))
                 }
-            }, 250)
+            }
         }
 
         menuWaitingPayment.setOnClickListener {
@@ -116,24 +141,25 @@ class KatalogActivity : AppCompatActivity() {
 
         menuResetPin.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            Handler(Looper.getMainLooper()).postDelayed({
 
-                // Tahap 1: Minta PIN Lama
-                showPinDialog("Masukkan PIN Lama", savedPin) { _ ->
-
-                    // Tahap 2: Minta PIN Baru (expectedPin null agar semua 6 angka diterima)
+            ambilPinFirebase { pinGlobal ->
+                showPinDialog("Masukkan PIN Lama", pinGlobal) { _ ->
                     showPinDialog("Masukkan PIN Baru", null) { pinBaru ->
-
-                        // Tahap 3: Konfirmasi PIN Baru (harus sama dengan pinBaru)
                         showPinDialog("Konfirmasi PIN Baru", pinBaru) { pinKonfirmasi ->
 
-                            // Simpan PIN Baru ke SharedPreferences
-                            sharedPref.edit().putString("user_pin", pinKonfirmasi).apply()
-                            Toast.makeText(this, "PIN berhasil diubah!", Toast.LENGTH_SHORT).show()
+                            val dataPin = hashMapOf("app_pin" to pinKonfirmasi)
+
+                            db.collection("settings").document("security").set(dataPin)
+                                .addOnSuccessListener {
+                                    Toast.makeText(this, "PIN berhasil diubah untuk semua perangkat!", Toast.LENGTH_LONG).show()
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(this, "Gagal mengubah PIN. Periksa koneksi.", Toast.LENGTH_SHORT).show()
+                                }
                         }
                     }
                 }
-            }, 250)
+            }
         }
 
         btnLogout.setOnClickListener {
@@ -150,30 +176,19 @@ class KatalogActivity : AppCompatActivity() {
                 .setNegativeButton("Batal", null)
                 .show()
         }
+    }
 
-        // 5. Setup RecyclerView & Firestore
-        recyclerKatalog.layoutManager = GridLayoutManager(this, 4)
-        adapter = ProductAdapter(productList)
-        recyclerKatalog.adapter = adapter
-        db = FirebaseFirestore.getInstance()
-        fetchDataFromFirestore()
-
-        // 6. Navigasi Antar Tab
-        tabRekomendasi.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
-        }
-
-        btnCart.setOnClickListener {
-            startActivity(Intent(this, KeranjangActivity::class.java))
-        }
-
-        // 7. Handle Window Insets
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainKatalog)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+    private fun ambilPinFirebase(onSuccess: (String) -> Unit) {
+        // Karena db sudah diinisialisasi di onCreate, kita bisa langsung pakai
+        val firestoreDb = FirebaseFirestore.getInstance()
+        firestoreDb.collection("settings").document("security").get()
+            .addOnSuccessListener { document ->
+                val pin = document.getString("app_pin") ?: "123456"
+                onSuccess(pin)
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Gagal menghubungi server untuk cek PIN", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun fetchDataFromFirestore() {
@@ -202,7 +217,6 @@ class KatalogActivity : AppCompatActivity() {
     private fun showPinDialog(customTitle: String, expectedPin: String?, onSuccess: (String) -> Unit) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.popup_pin, null)
 
-        // Mengubah judul pop-up sesuai parameter (Pastikan ada id tvTitlePin di XML kamu)
         val tvTitlePin = dialogView.findViewById<TextView>(R.id.tvTitlePin)
         if (tvTitlePin != null) {
             tvTitlePin.text = customTitle
@@ -225,10 +239,9 @@ class KatalogActivity : AppCompatActivity() {
 
                     if (enteredPin.length == 6) {
                         Handler(Looper.getMainLooper()).postDelayed({
-                            // Cek: Bebas masukkan PIN baru (null) ATAU PIN cocok dengan yang diharapkan
                             if (expectedPin == null || enteredPin == expectedPin) {
                                 dialog.dismiss()
-                                onSuccess(enteredPin) // Lanjut ke perintah berikutnya
+                                onSuccess(enteredPin)
                             } else {
                                 Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
                                 enteredPin = ""

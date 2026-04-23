@@ -173,7 +173,6 @@ class KeranjangActivity : AppCompatActivity() {
 
         val sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
         val userRole = sharedPref.getString("role", "admin")
-        val savedPin = sharedPref.getString("user_pin", "123456")
 
         if (userRole == "owner") {
             menuManajemenAdmin.visibility = View.VISIBLE
@@ -194,20 +193,20 @@ class KeranjangActivity : AppCompatActivity() {
 
         menuLaporan.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            Handler(Looper.getMainLooper()).postDelayed({
-                showPinDialog("Masukan PIN Anda", savedPin) {
+            ambilPinFirebase { pinGlobal ->
+                showPinDialog("Masukkan PIN Anda", pinGlobal) {
                     startActivity(Intent(this, LaporanActivity::class.java))
                 }
-            }, 250)
+            }
         }
 
         menuManajemen.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            Handler(Looper.getMainLooper()).postDelayed({
-                showPinDialog("Masukan PIN Anda", savedPin) {
+            ambilPinFirebase { pinGlobal ->
+                showPinDialog("Masukkan PIN Anda", pinGlobal) {
                     startActivity(Intent(this, ProdukActivity::class.java))
                 }
-            }, 250)
+            }
         }
 
         menuWaitingPayment.setOnClickListener {
@@ -226,24 +225,26 @@ class KeranjangActivity : AppCompatActivity() {
 
         menuResetPin.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            Handler(Looper.getMainLooper()).postDelayed({
 
-                // Tahap 1: Minta PIN Lama
-                showPinDialog("Masukkan PIN Lama", savedPin) { _ ->
-
-                    // Tahap 2: Minta PIN Baru (expectedPin null agar semua 6 angka diterima)
-                    showPinDialog("Masukkan PIN Baru", null) { pinBaru ->
-
-                        // Tahap 3: Konfirmasi PIN Baru (harus sama dengan pinBaru)
+            ambilPinFirebase { pinGlobal ->
+                showPinDialog("Masukkan PIN Anda", pinGlobal) { _ ->
+                    showPinDialog("Masukkan PIN Baru", null) {pinBaru ->
                         showPinDialog("Konfirmasi PIN Baru", pinBaru) { pinKonfirmasi ->
 
-                            // Simpan PIN Baru ke SharedPreferences
-                            sharedPref.edit().putString("user_pin", pinKonfirmasi).apply()
-                            Toast.makeText(this, "PIN berhasil diubah!", Toast.LENGTH_SHORT).show()
+                            val db = FirebaseFirestore.getInstance()
+                            val dataPin = hashMapOf("app_pin" to pinKonfirmasi)
+
+                            db.collection("settings").document("security").set(dataPin)
+                                .addOnSuccessListener {
+                                    Toast.makeText(this, "PIN berhasil diubah!", Toast.LENGTH_LONG).show()
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(this, "PIN gagal diubah", Toast.LENGTH_SHORT).show()
+                                }
                         }
                     }
                 }
-            }, 250)
+            }
         }
 
         btnLogout.setOnClickListener {
@@ -260,6 +261,18 @@ class KeranjangActivity : AppCompatActivity() {
                 .setNegativeButton("Batal", null)
                 .show()
         }
+    }
+
+    private fun ambilPinFirebase(onSuccess: (String) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("settings").document("security").get()
+            .addOnSuccessListener { document ->
+                val pin = document.getString("app_pin") ?: "123456"
+                onSuccess(pin)
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Gagal menghubungi server!", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun inisialisasiMidtrans() {
