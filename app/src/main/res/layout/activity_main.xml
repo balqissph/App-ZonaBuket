@@ -117,169 +117,207 @@
         android:clickable="true"
         android:focusable="true">
 
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="40dp"
-                android:paddingBottom="40dp"
-                android:text="Menu"
-                android:textAlignment="center"
-                android:textColor="#666666"
-                android:textSize="32sp"
-                android:textStyle="bold" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0" />
+            android:layout_alignParentTop="true"
+            android:layout_above="@id/btnLogout"
+            android:layout_marginBottom="10dp"
+            android:scrollbars="none">
 
             <LinearLayout
-                android:id="@+id/menuProfile"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/profile" /> <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:text="Profile"
-                android:textColor="#555555"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0" />
-
-            <LinearLayout
-                android:id="@+id/menuLaporan"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/laporan_penjualan" />
                 <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="40dp"
+                    android:paddingBottom="40dp"
+                    android:text="Menu"
+                    android:textAlignment="center"
+                    android:textColor="#666666"
+                    android:textSize="32sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0" />
+
+                <LinearLayout
+                    android:id="@+id/menuProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/profile" /> <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
-                    android:text="Laporan Penjualan"
+                    android:text="Profile"
                     android:textColor="#555555"
                     android:textSize="16sp"
                     android:textStyle="bold" />
-            </LinearLayout>
+                </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0" />
 
-            <LinearLayout
-                android:id="@+id/menuManajemen"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/manajemen_produk" />
-
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/menuLaporan"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:text="Manajemen Produk"
-                    android:textColor="#555555"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0" />
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/laporan_penjualan" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="24dp"
+                        android:text="Laporan Penjualan"
+                        android:textColor="#555555"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/menuWaitingPayment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0" />
 
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/waitingpayment" />
-
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/menuManajemen"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:text="Waiting Payment"
-                    android:textColor="#555555"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0" />
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/manajemen_produk" />
 
-            <LinearLayout
-                android:id="@+id/menuManajemenAdmin"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="24dp"
+                        android:text="Manajemen Produk"
+                        android:textColor="#555555"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/manajemen_admin" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0" />
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/menuWaitingPayment"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:text="Manajemen Admin"
-                    android:textColor="#555555"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E0E0E0" />
-        </LinearLayout>
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/waitingpayment" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="24dp"
+                        android:text="Waiting Payment"
+                        android:textColor="#555555"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0" />
+
+                <LinearLayout
+                    android:id="@+id/menuManajemenAdmin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/manajemen_admin" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="24dp"
+                        android:text="Manajemen Admin"
+                        android:textColor="#555555"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0" />
+
+                <LinearLayout
+                    android:id="@+id/menuResetPin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/resetpin" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="24dp"
+                        android:text="Ubah Pin"
+                        android:textColor="#555555"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0" />
+            </LinearLayout>
+        </ScrollView>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogout"

@@ -168,15 +168,19 @@ class KeranjangActivity : AppCompatActivity() {
         val menuManajemen = findViewById<LinearLayout>(R.id.menuManajemen)
         val menuWaitingPayment = findViewById<LinearLayout>(R.id.menuWaitingPayment)
         val menuManajemenAdmin = findViewById<LinearLayout>(R.id.menuManajemenAdmin)
+        val menuResetPin = findViewById<LinearLayout>(R.id.menuResetPin)
         val btnLogout = findViewById<MaterialButton>(R.id.btnLogout)
 
         val sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
         val userRole = sharedPref.getString("role", "admin")
+        val savedPin = sharedPref.getString("user_pin", "123456")
 
         if (userRole == "owner") {
             menuManajemenAdmin.visibility = View.VISIBLE
+            menuResetPin.visibility = View.VISIBLE
         } else {
             menuManajemenAdmin.visibility = View.GONE
+            menuResetPin.visibility = View.GONE
         }
 
         menuWaitingPayment.visibility = View.VISIBLE
@@ -190,12 +194,20 @@ class KeranjangActivity : AppCompatActivity() {
 
         menuLaporan.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            showPinDialog(LaporanActivity::class.java)
+            Handler(Looper.getMainLooper()).postDelayed({
+                showPinDialog("Masukan PIN Anda", savedPin) {
+                    startActivity(Intent(this, LaporanActivity::class.java))
+                }
+            }, 250)
         }
 
         menuManajemen.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            showPinDialog(ProdukActivity::class.java)
+            Handler(Looper.getMainLooper()).postDelayed({
+                showPinDialog("Masukan PIN Anda", savedPin) {
+                    startActivity(Intent(this, ProdukActivity::class.java))
+                }
+            }, 250)
         }
 
         menuWaitingPayment.setOnClickListener {
@@ -207,7 +219,31 @@ class KeranjangActivity : AppCompatActivity() {
 
         menuManajemenAdmin.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
-            showPinDialog(ManageAdminActivity::class.java)
+            Handler(Looper.getMainLooper()).postDelayed({
+                startActivity(Intent(this, ManageAdminActivity::class.java))
+            }, 250)
+        }
+
+        menuResetPin.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.START)
+            Handler(Looper.getMainLooper()).postDelayed({
+
+                // Tahap 1: Minta PIN Lama
+                showPinDialog("Masukkan PIN Lama", savedPin) { _ ->
+
+                    // Tahap 2: Minta PIN Baru (expectedPin null agar semua 6 angka diterima)
+                    showPinDialog("Masukkan PIN Baru", null) { pinBaru ->
+
+                        // Tahap 3: Konfirmasi PIN Baru (harus sama dengan pinBaru)
+                        showPinDialog("Konfirmasi PIN Baru", pinBaru) { pinKonfirmasi ->
+
+                            // Simpan PIN Baru ke SharedPreferences
+                            sharedPref.edit().putString("user_pin", pinKonfirmasi).apply()
+                            Toast.makeText(this, "PIN berhasil diubah!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }, 250)
         }
 
         btnLogout.setOnClickListener {
@@ -348,15 +384,22 @@ class KeranjangActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun showPinDialog(targetActivity: Class<*>) {
+    private fun showPinDialog(customTitle: String, expectedPin: String?, onSuccess: (String) -> Unit) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.popup_pin, null)
+
+        // Mengubah judul pop-up sesuai parameter (Pastikan ada id tvTitlePin di XML kamu)
+        val tvTitlePin = dialogView.findViewById<TextView>(R.id.tvTitlePin)
+        if (tvTitlePin != null) {
+            tvTitlePin.text = customTitle
+        }
+
         val tvPinIndicator = dialogView.findViewById<TextView>(R.id.tvPinIndicator)
         val btnDelete = dialogView.findViewById<ImageButton>(R.id.btnDelete)
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         var enteredPin = ""
-        val db = FirebaseFirestore.getInstance()
+
         val numberButtons = listOf(R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4, R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9)
 
         for (id in numberButtons) {
@@ -367,35 +410,28 @@ class KeranjangActivity : AppCompatActivity() {
 
                     if (enteredPin.length == 6) {
                         Handler(Looper.getMainLooper()).postDelayed({
-                            db.collection("setting").document("security").get()
-                                .addOnSuccessListener { document ->
-                                    val correctPin = document.getString("app-pin") ?: "123456"
-
-                                    if (enteredPin == correctPin) {
-                                        dialog.dismiss()
-                                        startActivity(Intent(this, targetActivity))
-                                    } else {
-                                        Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
-                                        enteredPin = ""
-                                        tvPinIndicator.text = ""
-                                    }
-                                }
-                                .addOnFailureListener { e ->
-                                    Toast.makeText(this, "Gagal mengecek PIN: ${e.message}", Toast.LENGTH_SHORT).show()
-                                    enteredPin = ""
-                                    tvPinIndicator.text = ""
-                                }
+                            // Cek: Bebas masukkan PIN baru (null) ATAU PIN cocok dengan yang diharapkan
+                            if (expectedPin == null || enteredPin == expectedPin) {
+                                dialog.dismiss()
+                                onSuccess(enteredPin) // Lanjut ke perintah berikutnya
+                            } else {
+                                Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
+                                enteredPin = ""
+                                tvPinIndicator.text = ""
+                            }
                         }, 200)
                     }
                 }
             }
         }
+
         btnDelete.setOnClickListener {
             if (enteredPin.isNotEmpty()) {
                 enteredPin = enteredPin.dropLast(1)
                 tvPinIndicator.text = "●".repeat(enteredPin.length)
             }
         }
+
         dialog.show()
     }
 
