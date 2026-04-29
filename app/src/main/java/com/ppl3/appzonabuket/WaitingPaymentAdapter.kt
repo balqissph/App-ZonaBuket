@@ -12,7 +12,8 @@ data class WaitingPayment(
     val waktu: String,
     val metode: String,
     val noVa: String,
-    val total: String
+    val total: String,
+    val expiredDate: String
 )
 
 class WaitingPaymentAdapter(
@@ -26,6 +27,7 @@ class WaitingPaymentAdapter(
         val tvWaktu: TextView = itemView.findViewById(R.id.tvWpWaktu)
         val tvMetodeVa: TextView = itemView.findViewById(R.id.tvWpMetodeVa)
         val tvTotal: TextView = itemView.findViewById(R.id.tvWpTotal)
+        val tvExpiredDate: TextView = itemView.findViewById(R.id.tvWpExpiredDate)
         // 2. ID tombol tetap sama (asumsi di XML kamu belum diubah)
         val btnCekStatus: Button = itemView.findViewById(R.id.btnKonfirmasiLunas)
     }
@@ -43,6 +45,7 @@ class WaitingPaymentAdapter(
         holder.tvWaktu.text = pesanan.waktu
         holder.tvMetodeVa.text = "${pesanan.metode} - VA: ${pesanan.noVa}"
         holder.tvTotal.text = "Total: Rp.${pesanan.total}"
+        holder.tvExpiredDate.text = "Batas Waktu: ${pesanan.expiredDate}"
 
         // 3. Saat diklik, panggil fungsi untuk mengecek status
         holder.btnCekStatus.setOnClickListener {

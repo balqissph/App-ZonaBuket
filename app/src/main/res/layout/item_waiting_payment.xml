@@ -39,10 +39,20 @@
             android:textSize="16sp"/>
 
         <TextView
-            android:id="@+id/tvWpTotal"
+            android:id="@+id/tvWpExpiredDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:textColor="#D32F2F"
+            android:textSize="12sp"
+            android:textStyle="italic"
+            android:text="Batas Pembayaran: -"/>
+
+        <TextView
+            android:id="@+id/tvWpTotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:textStyle="bold"
             android:textColor="#333333"
             android:textSize="18sp"/>

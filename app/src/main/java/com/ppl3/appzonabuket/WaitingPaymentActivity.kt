@@ -25,7 +25,7 @@ class WaitingPaymentActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_waiting_payment)
 
-        val btnBack = findViewById<ImageView>(R.id.btnBackWP)
+        val btnBack = findViewById<ImageView>(R.id.btnBack)
         val recycler = findViewById<RecyclerView>(R.id.recyclerWaiting)
 
         btnBack.setOnClickListener {
@@ -67,9 +67,10 @@ class WaitingPaymentActivity : AppCompatActivity() {
                     val metode = doc.getString("metode_pembayaran") ?: "-"
                     val noVa = doc.getString("nomor_va") ?: "-"
                     val total = doc.getLong("total_harga") ?: 0
+                    val expiredDate = doc.getString("expired_date") ?: "-"
 
                     waitingList.add(
-                        WaitingPayment(idDokumen, timestampStr, metode, noVa, total.toString())
+                        WaitingPayment(idDokumen, timestampStr, metode, noVa, total.toString(),expiredDate)
                     )
                 }
                 adapter.notifyDataSetChanged()
