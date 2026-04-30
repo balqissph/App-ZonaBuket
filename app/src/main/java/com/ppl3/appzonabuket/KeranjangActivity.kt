@@ -41,6 +41,7 @@ import com.midtrans.sdk.corekit.callback.TransactionFinishedCallback
 import com.midtrans.sdk.corekit.core.MidtransSDK
 import com.midtrans.sdk.corekit.models.snap.TransactionResult
 import com.midtrans.sdk.uikit.SdkUIFlowBuilder
+import com.ppl3.appzonabuket.api.StatusResponse
 
 class KeranjangActivity : AppCompatActivity() {
 
@@ -280,7 +281,7 @@ class KeranjangActivity : AppCompatActivity() {
             .setClientKey("Mid-client-u5kXP0SEXFv9L379")
             .setContext(this)
             .setTransactionFinishedCallback { result -> handleHasilPembayaranMidtrans(result) }
-            .setMerchantBaseUrl("http://10.70.0.204:8000/api/")
+            .setMerchantBaseUrl("http://10.80.0.235:8000/api/")
             .enableLog(true)
             .buildSDK()
     }
@@ -292,16 +293,52 @@ class KeranjangActivity : AppCompatActivity() {
     private fun handleHasilPembayaranMidtrans(result: TransactionResult) {
         when (result.status) {
             TransactionResult.STATUS_SUCCESS, TransactionResult.STATUS_PENDING -> {
-                val statusSimpan = if (result.status == TransactionResult.STATUS_SUCCESS) "Lunas" else "Menunggu Pembayaran"
-                Toast.makeText(this, "Pembayaran diproses!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Mengambil detail pembayaran...", Toast.LENGTH_SHORT).show()
 
-                // Hanya update status di Firestore, jangan buat data baru lagi
                 currentOrderId?.let { orderId ->
-                    FirebaseFirestore.getInstance().collection("pesanan").document(orderId)
-                        .update("status", statusSimpan)
-                }
+                    // 1. Panggil Laravel untuk mengambil info VA dan Batas Waktu
+                    ApiClient.instance.checkPaymentStatus(orderId).enqueue(object : Callback<StatusResponse> {
+                        override fun onResponse(call: Call<StatusResponse>, response: Response<StatusResponse>) {
+                            if (response.isSuccessful) {
+                                val data = response.body()
+                                val statusSimpan = if (data?.transactionStatus == "settlement" || data?.transactionStatus == "capture") "Lunas" else "Menunggu Pembayaran"
 
-                selesaikanCheckout("Pesanan berhasil masuk sistem!")
+                                val vaUpdate = data?.vaNumber ?: "-"
+                                val expiryUpdate = data?.expiryTime ?: "-"
+                                val metodeUpdate = data?.paymentType?.uppercase() ?: "NON-TUNAI"
+
+                                // 2. Siapkan data update untuk Firestore
+                                val updates = hashMapOf<String, Any>(
+                                    "status" to statusSimpan,
+                                    "nomor_va" to vaUpdate,
+                                    "expired_date" to expiryUpdate,
+                                    "metode_pembayaran" to metodeUpdate
+                                )
+
+                                // 3. Timpa dokumen pesanan dengan data yang lengkap
+                                FirebaseFirestore.getInstance().collection("pesanan").document(orderId)
+                                    .update(updates)
+                                    .addOnSuccessListener {
+                                        selesaikanCheckout("Pesanan berhasil masuk sistem!")
+                                    }
+                            } else {
+                                // Jika gagal terhubung ke Laravel, tetap update status minimalnya
+                                FirebaseFirestore.getInstance().collection("pesanan").document(orderId)
+                                    .update("status", "Menunggu Pembayaran")
+                                selesaikanCheckout("Pesanan tersimpan (Tanpa Detail VA)")
+                            }
+                        }
+
+                        override fun onFailure(call: Call<StatusResponse>, t: Throwable) {
+                            // Sama seperti di atas, minimal statusnya terupdate jika internet tiba-tiba putus
+                            FirebaseFirestore.getInstance().collection("pesanan").document(orderId)
+                                .update("status", "Menunggu Pembayaran")
+                            selesaikanCheckout("Koneksi bermasalah, pesanan tetap diproses.")
+                        }
+                    })
+                } ?: run {
+                    selesaikanCheckout("Pesanan diproses.")
+                }
             }
             TransactionResult.STATUS_FAILED -> Toast.makeText(this, "Pembayaran Gagal", Toast.LENGTH_SHORT).show()
             else -> Toast.makeText(this, "Transaksi Dibatalkan", Toast.LENGTH_SHORT).show()
@@ -358,6 +395,10 @@ class KeranjangActivity : AppCompatActivity() {
     private fun simpanPesananKeFirebase(idPesanan: String, metode: String, status: String, nomorVa: String) {
         val db = FirebaseFirestore.getInstance()
 
+        // --- INI DIA TAMBAHANNYA: AMBIL NAMA DARI SESI LOGIN ---
+        val sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
+        val namaKasirAktif = sharedPref.getString("username", "Tanpa Nama") ?: "Tanpa Nama"
+
         var totalBelanja = 0
         for (item in CartManager.cartItems) {
             totalBelanja += (item.price * item.qty)
@@ -369,7 +410,8 @@ class KeranjangActivity : AppCompatActivity() {
             "nomor_va" to nomorVa,
             "total_harga" to totalBelanja,
             "tanggal_pesanan" to Timestamp.now(),
-            "catatan" to etNotes.text.toString()
+            "catatan" to etNotes.text.toString(),
+            "kasir" to namaKasirAktif // <-- DAN KITA MASUKKAN KE SINI!
         )
 
         db.collection("pesanan").document(idPesanan).set(pesananData)

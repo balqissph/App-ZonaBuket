@@ -1,6 +1,6 @@
 package com.ppl3.appzonabuket
 
 data class Admin(
-    val id: Int,
+    val id: String,
     val nama: String
 )

@@ -1,5 +1,6 @@
 package com.ppl3.appzonabuket
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -15,9 +16,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
-
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -28,14 +27,12 @@ class LaporanActivity : AppCompatActivity() {
     private lateinit var adapter: LaporanAdapter
     private val laporanList = mutableListOf<Laporan>()
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_laporan)
 
         val recyclerLaporan = findViewById<RecyclerView>(R.id.recyclerLaporan)
         val btnSavePDF = findViewById<MaterialButton>(R.id.btnSavePDF)
-        laporanList.sortByDescending {it.timestamp}
 
         drawerLayout = findViewById(R.id.drawerLayout)
         val btnBack = findViewById<ImageView>(R.id.btnBack)
@@ -72,12 +69,7 @@ class LaporanActivity : AppCompatActivity() {
             .addOnSuccessListener { resultPesanan ->
                 laporanList.clear()
 
-                // Sortir secara manual dari yang terbaru agar tidak error di index Firebase
-                val sortedPesanan = resultPesanan.documents.sortedByDescending {
-                    it.getTimestamp("tanggal_pesanan")
-                }
-
-                for (docPesanan in sortedPesanan) {
+                for (docPesanan in resultPesanan.documents) {
                     val idPesanan = docPesanan.id
 
                     val date = docPesanan.getTimestamp("tanggal_pesanan")?.toDate()
@@ -90,13 +82,16 @@ class LaporanActivity : AppCompatActivity() {
 
                     val notesFinal = if (notes.isBlank()) null else notes
 
+                    // --- AMBIL NAMA KASIR DARI FIRESTORE ---
+                    val namaKasirDiDb = docPesanan.getString("kasir")
+                    val finalKasirName = namaKasirDiDb ?: "Tanpa Nama"
+
                     // Ambil detail produk berdasarkan ID Pesanan tersebut
                     db.collection("detail_pesanan")
                         .whereEqualTo("id_pesanan", idPesanan)
                         .get()
                         .addOnSuccessListener { resultDetail ->
 
-                            // Siapkan list kosong untuk menampung gabungan teks
                             val listNama = mutableListOf<String>()
                             val listHarga = mutableListOf<String>()
                             val listJumlah = mutableListOf<String>()
@@ -106,13 +101,11 @@ class LaporanActivity : AppCompatActivity() {
                                 val hargaSatuan = docDetail.getLong("harga_satuan") ?: 0
                                 val jumlah = docDetail.getLong("jumlah") ?: 0
 
-                                // Masukkan ke dalam list penampung
                                 listNama.add(namaProduk)
                                 listHarga.add("Rp.$hargaSatuan")
-                                listJumlah.add(jumlah.toString()) // Jadikan string agar bisa digabung
+                                listJumlah.add(jumlah.toString())
                             }
 
-                            // Masukkan ke Data Class Laporan
                             val laporanItem = Laporan(
                                 idPesanan = "ID: ${idPesanan.take(8)}",
                                 timestamp = timestampStr,
@@ -122,11 +115,24 @@ class LaporanActivity : AppCompatActivity() {
                                 jumlah = listJumlah.joinToString("\n"),
                                 total = "Rp.$totalHargaStruk",
                                 pembayaran = pembayaran,
-                                admin = "Admin 1",
-                                status = "Lunas" // <-- Wajib ditambahkan agar sesuai dengan Data Class Laporan.kt yang baru
+                                admin = finalKasirName,
+                                status = "Lunas"
                             )
 
                             laporanList.add(laporanItem)
+
+                            // --- LOGIKA PENGURUTAN WAKTU YANG BENAR ---
+                            // Kita ubah teks "HH:mm / d-M-yyyy" kembali menjadi waktu sungguhan
+                            // agar komputer bisa mengurutkannya dari yang TERBARU ke TERLAMA
+                            val sortFormat = SimpleDateFormat("HH:mm / d-M-yyyy", Locale.getDefault())
+                            laporanList.sortByDescending { item ->
+                                try {
+                                    sortFormat.parse(item.timestamp)
+                                } catch (e: Exception) {
+                                    java.util.Date(0) // Default jika gagal parse
+                                }
+                            }
+
                             adapter.notifyDataSetChanged()
                         }
                 }

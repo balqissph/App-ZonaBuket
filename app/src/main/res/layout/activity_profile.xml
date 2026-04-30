@@ -77,12 +77,13 @@
                 android:layout_marginBottom="32dp">
 
                 <EditText
-                    android:id="@+id/etName"
+                    android:id="@+id/etNama"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@android:color/transparent"
                     android:paddingHorizontal="16dp"
-                    android:text="Admin 1"
+                    android:text=""
+                    android:hint="Memuat nama..."
                     android:textSize="14sp"
                     android:textColor="#888888"
                     android:enabled="false"/>

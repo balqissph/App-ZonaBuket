@@ -10,5 +10,9 @@ data class StatusResponse(
     val transactionStatus: String?, // Ini yang berisi: settlement, pending, cancel, dll
     @SerializedName("payment_type")
     val paymentType: String?,
+    @SerializedName("va_number")      // TAMBAHAN BARU
+    val vaNumber: String?,            // TAMBAHAN BARU
+    @SerializedName("expiry_time")    // TAMBAHAN BARU
+    val expiryTime: String?,          // TAMBAHAN BARU
     val message: String?
 )

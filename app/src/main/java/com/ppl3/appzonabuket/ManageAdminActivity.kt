@@ -1,36 +1,35 @@
 package com.ppl3.appzonabuket
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class ManageAdminActivity : AppCompatActivity() {
 
     lateinit var drawerLayout: DrawerLayout
 
-    // 1. JADIKAN VARIABEL GLOBAL AGAR BISA DIAKSES DI FUNGSI POPUP
     private val dataAdmin = mutableListOf<Admin>()
     private lateinit var adapter: AdminAdapter
+
+    private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +37,8 @@ class ManageAdminActivity : AppCompatActivity() {
         setContentView(R.layout.activity_manage_admin)
 
         drawerLayout = findViewById(R.id.drawerLayout)
+        auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
 
         ViewCompat.setOnApplyWindowInsetsListener(drawerLayout) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -46,113 +47,78 @@ class ManageAdminActivity : AppCompatActivity() {
         }
 
         val btnBack = findViewById<ImageView>(R.id.btnBack)
-
         btnBack.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             finish()
         }
 
-        // --- KODE MANAGE ADMIN (RECYCLERVIEW) ---
         val rvAdmin: RecyclerView = findViewById(R.id.rvAdmin)
         val btnTambahAdmin: MaterialButton = findViewById(R.id.btnTambahAdmin)
 
-        // 2. ISI DATA AWAL
-        if (dataAdmin.isEmpty()) {
-            dataAdmin.add(Admin(1, "Jessica Admin 1"))
-            dataAdmin.add(Admin(2, "Elio Admin 2"))
-            dataAdmin.add(Admin(3, "Eden Admin 3"))
-        }
-
         rvAdmin.layoutManager = LinearLayoutManager(this)
 
-        // 3. INISIALISASI ADAPTER
         adapter = AdminAdapter(
             listAdmin = dataAdmin,
             onEditClick = { adminYangDipilih ->
                 tampilkanDialogAdmin(isEdit = true, admin = adminYangDipilih)
             },
             onDeleteClick = { adminYangDihapus, posisi ->
-                val builder = AlertDialog.Builder(this)
-                builder.setTitle("Hapus Admin")
-                builder.setMessage("Apakah Anda yakin ingin menghapus ${adminYangDihapus.nama}?")
-
-                builder.setPositiveButton("Hapus") { dialog, which ->
-                    dataAdmin.removeAt(posisi)
-                    adapter.notifyItemRemoved(posisi)
-                    adapter.notifyItemRangeChanged(posisi, dataAdmin.size)
-                    Toast.makeText(this, "${adminYangDihapus.nama} berhasil dihapus", Toast.LENGTH_SHORT).show()
-                }
-
-                builder.setNegativeButton("Batal") { dialog, which -> dialog.dismiss() }
-                builder.show()
+                konfirmasiHapusAdmin(adminYangDihapus, posisi)
             }
         )
-
         rvAdmin.adapter = adapter
 
-        // Aksi untuk tombol Tambah Admin
+        // Muat data saat halaman dibuka
+        loadDataDariFirestore()
+
         btnTambahAdmin.setOnClickListener {
             tampilkanDialogAdmin(isEdit = false)
         }
     }
 
-    // --- FUNGSI UNTUK MENAMPILKAN POPUP PIN CUSTOM KEYPAD ---
-    private fun showPinDialog(targetActivity: Class<*>) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.popup_pin, null)
-        val tvPinIndicator = dialogView.findViewById<TextView>(R.id.tvPinIndicator)
-        val btnDelete = dialogView.findViewById<ImageButton>(R.id.btnDelete)
-
-        val builder = AlertDialog.Builder(this)
-        builder.setView(dialogView)
-        val dialog = builder.create()
-
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-        var enteredPin = ""
-        val correctPin = "123456"
-
-        val numberButtons = listOf(
-            R.id.btn0, R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4,
-            R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9
-        )
-
-        for (id in numberButtons) {
-            dialogView.findViewById<TextView>(id).setOnClickListener { view ->
-                if (enteredPin.length < 6) {
-                    val number = (view as TextView).text.toString()
-                    enteredPin += number
-
-                    tvPinIndicator.text = "●".repeat(enteredPin.length)
-
-                    if (enteredPin.length == 6) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            if (enteredPin == correctPin) {
-                                Toast.makeText(this, "Akses Diberikan", Toast.LENGTH_SHORT).show()
-                                dialog.dismiss()
-                                startActivity(Intent(this, targetActivity))
-                            } else {
-                                Toast.makeText(this, "PIN Salah!", Toast.LENGTH_SHORT).show()
-                                enteredPin = ""
-                                tvPinIndicator.text = ""
-                            }
-                        }, 200)
-                    }
+    private fun loadDataDariFirestore() {
+        // KITA PAKAI KOLEKSI "users" AGAR SINKRON DENGAN PROFILE ACTIVITY
+        db.collection("users")
+            .whereEqualTo("role", "admin") // Hanya tampilkan yang role-nya admin
+            .get()
+            .addOnSuccessListener { result ->
+                dataAdmin.clear()
+                for (document in result) {
+                    val idDoc = document.id
+                    val nama = document.getString("nama") ?: "Tanpa Nama"
+                    dataAdmin.add(Admin(idDoc, nama))
                 }
+                adapter.notifyDataSetChanged()
             }
-        }
-
-        btnDelete.setOnClickListener {
-            if (enteredPin.isNotEmpty()) {
-                enteredPin = enteredPin.dropLast(1)
-                tvPinIndicator.text = "●".repeat(enteredPin.length)
+            .addOnFailureListener {
+                Toast.makeText(this, "Gagal memuat data admin", Toast.LENGTH_SHORT).show()
             }
-        }
-
-        dialog.show()
     }
 
-    // --- FUNGSI UNTUK MEMUNCULKAN POPUP TAMBAH/EDIT ADMIN ---
+    private fun konfirmasiHapusAdmin(admin: Admin, posisi: Int) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Hapus Admin")
+        builder.setMessage("Akses masuk untuk '${admin.nama}' akan diblokir dari aplikasi ini.\n\nPERHATIAN: Untuk menghapus datanya secara permanen dari server Google, Anda tetap harus menghapusnya di Website Firebase Console.")
+
+        builder.setPositiveButton("Hapus") { dialog, which ->
+            db.collection("users").document(admin.id)
+                .delete()
+                .addOnSuccessListener {
+                    dataAdmin.removeAt(posisi)
+                    adapter.notifyItemRemoved(posisi)
+                    adapter.notifyItemRangeChanged(posisi, dataAdmin.size)
+                    Toast.makeText(this, "${admin.nama} berhasil dihapus", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Gagal menghapus data", Toast.LENGTH_SHORT).show()
+                }
+        }
+
+        builder.setNegativeButton("Batal") { dialog, which -> dialog.dismiss() }
+        builder.show()
+    }
+
     private fun tampilkanDialogAdmin(isEdit: Boolean, admin: Admin? = null) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.popup_admin, null)
 
@@ -161,12 +127,10 @@ class ManageAdminActivity : AppCompatActivity() {
         val btnSimpan = dialogView.findViewById<MaterialButton>(R.id.btnSimpanAdminDialog)
 
         if (isEdit && admin != null) {
+            // JIKA MODE EDIT: Kunci mati kolom password!
             etNama.setText(admin.nama)
             etPassword.setText("******")
-
-            etPassword.isFocusable = false
-            etPassword.isClickable = false
-            etPassword.isCursorVisible = false
+            etPassword.isEnabled = false // Mematikan kolom agar tidak bisa diklik
             etPassword.setTextColor(Color.parseColor("#999999"))
         }
 
@@ -176,9 +140,9 @@ class ManageAdminActivity : AppCompatActivity() {
         alertDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         alertDialog.show()
 
-        // 4. LOGIKA TOMBOL SIMPAN
         btnSimpan.setOnClickListener {
             val namaBaru = etNama.text.toString().trim()
+            val passwordBaru = etPassword.text.toString().trim() // Hanya dipakai saat Tambah Admin
 
             if (namaBaru.isEmpty()) {
                 Toast.makeText(this, "Nama tidak boleh kosong!", Toast.LENGTH_SHORT).show()
@@ -186,29 +150,92 @@ class ManageAdminActivity : AppCompatActivity() {
             }
 
             if (isEdit && admin != null) {
-                // LOGIKA EDIT: Cari posisi admin lama, lalu update dengan data baru
-                val index = dataAdmin.indexOf(admin)
-                if (index != -1) {
-                    // Kita asumsikan format data class adalah Admin(id, nama)
-                    dataAdmin[index] = Admin(admin.id, namaBaru)
-
-                    // Beritahu adapter ada perubahan di baris tersebut
-                    adapter.notifyItemChanged(index)
-                    Toast.makeText(this, "Nama Admin berhasil diubah", Toast.LENGTH_SHORT).show()
+                // --- LOGIKA EDIT NAMA SAJA ---
+                if (namaBaru == admin.nama) {
+                    Toast.makeText(this, "Tidak ada perubahan.", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
                 }
+
+                btnSimpan.text = "Memperbarui..."
+                btnSimpan.isEnabled = false
+
+                // 1. Ambil password asli diam-diam dari Firestore
+                db.collection("users").document(admin.id).get()
+                    .addOnSuccessListener { document ->
+                        val passwordAsli = document.getString("password") ?: "123456" // Default jaga-jaga
+                        val dummyEmailBaru = "$namaBaru@zonabuket.com"
+
+                        // 2. Buat akun Auth baru dengan nama baru & password asli
+                        auth.createUserWithEmailAndPassword(dummyEmailBaru, passwordAsli)
+                            .addOnCompleteListener(this) { task ->
+                                if (task.isSuccessful) {
+                                    // 3. Update nama di database Firestore
+                                    db.collection("users").document(admin.id)
+                                        .update("nama", namaBaru)
+                                        .addOnSuccessListener {
+                                            alertDialog.dismiss()
+                                            Toast.makeText(this, "Nama berhasil diedit! Untuk keamanan, Anda di-logout.", Toast.LENGTH_LONG).show()
+                                            logoutDanKembaliKeLogin()
+                                        }
+                                } else {
+                                    Toast.makeText(this, "Gagal mengedit nama: Email/Nama ini sudah pernah dipakai.", Toast.LENGTH_LONG).show()
+                                    btnSimpan.text = "Simpan"
+                                    btnSimpan.isEnabled = true
+                                }
+                            }
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Gagal mengambil data database.", Toast.LENGTH_SHORT).show()
+                        btnSimpan.text = "Simpan"
+                        btnSimpan.isEnabled = true
+                    }
+
             } else {
-                // LOGIKA TAMBAH: Buat ID baru dan tambahkan ke list
-                val idBaru = if (dataAdmin.isNotEmpty()) dataAdmin.last().id + 1 else 1
-                val adminBaru = Admin(idBaru, namaBaru)
+                // --- LOGIKA TAMBAH ADMIN BARU ---
+                if (passwordBaru.length < 6) {
+                    Toast.makeText(this, "Password minimal 6 karakter!", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
 
-                dataAdmin.add(adminBaru)
+                btnSimpan.text = "Membuat Akun..."
+                btnSimpan.isEnabled = false
 
-                // Beritahu adapter ada data baru di baris paling bawah
-                adapter.notifyItemInserted(dataAdmin.size - 1)
-                Toast.makeText(this, "Admin baru berhasil ditambahkan", Toast.LENGTH_SHORT).show()
+                val dummyEmail = "$namaBaru@zonabuket.com"
+
+                auth.createUserWithEmailAndPassword(dummyEmail, passwordBaru)
+                    .addOnCompleteListener(this) { task ->
+                        if (task.isSuccessful) {
+                            // SIMPAN NAMA, PASSWORD, DAN ROLE KE KOLEKSI "users"
+                            val dataBaru = hashMapOf(
+                                "nama" to namaBaru,
+                                "password" to passwordBaru,
+                                "role" to "admin"
+                            )
+
+                            db.collection("users").add(dataBaru)
+                                .addOnSuccessListener {
+                                    alertDialog.dismiss()
+                                    Toast.makeText(this, "Admin berhasil dibuat! Untuk keamanan, Anda di-logout.", Toast.LENGTH_LONG).show()
+                                    logoutDanKembaliKeLogin()
+                                }
+                        } else {
+                            Toast.makeText(this, "Gagal membuat akun: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                            btnSimpan.text = "Simpan"
+                            btnSimpan.isEnabled = true
+                        }
+                    }
             }
-
-            alertDialog.dismiss()
         }
+    }
+
+    private fun logoutDanKembaliKeLogin() {
+        auth.signOut()
+        val sharedPref = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
+        sharedPref.edit().clear().apply()
+
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }
